@@ -154,7 +154,14 @@ def build_exe() -> None:
 
 
 def make_zip() -> Path:
-    """把免安装版打成根目录为 ``FishCloud/`` 的便携包（存储模式，秒级完成）。"""
+    """把免安装版打成根目录为 ``FishCloud/`` 的便携包（存储模式，秒级完成）。
+
+    打包前先清缓存：**运行过 App 的目录会生成 ``__pycache__``**，
+    不清理会让包体虚胖（实测 1342 MB → 1469 MB）并把字节码带进发布包。
+    """
+    purged = purge_junk()
+    if purged:
+        print(f"已清理 {purged} 个缓存/残留目录后再打包")
     target = PORTABLE / f"{APP_NAME}-Portable-{APP_VERSION}.zip"
     if target.exists():
         target.unlink()
