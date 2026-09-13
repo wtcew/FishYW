@@ -96,49 +96,70 @@ def _build_env(app_dir: Path) -> dict[str, str]:
     return env
 
 
+def _kernel32() -> ctypes.WinDLL:
+    """返回声明好原型的 kernel32（句柄类 API 必须显式声明，否则会被截断成 32 位）。"""
+    lib = ctypes.WinDLL("kernel32", use_last_error=True)
+    lib.CreateJobObjectW.argtypes = [ctypes.c_void_p, wintypes.LPCWSTR]
+    lib.CreateJobObjectW.restype = wintypes.HANDLE
+    lib.SetInformationJobObject.argtypes = [
+        wintypes.HANDLE,
+        ctypes.c_int,
+        ctypes.c_void_p,
+        wintypes.DWORD,
+    ]
+    lib.SetInformationJobObject.restype = wintypes.BOOL
+    lib.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+    lib.OpenProcess.restype = wintypes.HANDLE
+    lib.AssignProcessToJobObject.argtypes = [wintypes.HANDLE, wintypes.HANDLE]
+    lib.AssignProcessToJobObject.restype = wintypes.BOOL
+    lib.TerminateJobObject.argtypes = [wintypes.HANDLE, wintypes.UINT]
+    lib.TerminateJobObject.restype = wintypes.BOOL
+    lib.CloseHandle.argtypes = [wintypes.HANDLE]
+    lib.CloseHandle.restype = wintypes.BOOL
+    return lib
+
+
 def _create_kill_on_close_job() -> int | None:
     """创建"句柄关闭即杀光成员"的作业对象，失败返回 None（降级为普通父子关系）。"""
     if os.name != "nt":
         return None
-    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel32 = _kernel32()
     job = kernel32.CreateJobObjectW(None, None)
     if not job:
         return None
     info = JOBOBJECT_EXTENDED_LIMIT_INFORMATION()
     info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
     ok = kernel32.SetInformationJobObject(
-        wintypes.HANDLE(job),
+        job,
         JOB_OBJECT_EXTENDED_LIMIT_INFORMATION,
         ctypes.byref(info),
         ctypes.sizeof(info),
     )
     if not ok:
-        kernel32.CloseHandle(wintypes.HANDLE(job))
+        kernel32.CloseHandle(job)
         return None
     return job
 
 
 def _assign_to_job(job: int, pid: int) -> bool:
     """把子进程加入作业对象；权限不足或系统不支持时返回 False。"""
-    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel32 = _kernel32()
     handle = kernel32.OpenProcess(PROCESS_SET_QUOTA | PROCESS_TERMINATE, False, pid)
     if not handle:
         return False
     try:
-        return bool(
-            kernel32.AssignProcessToJobObject(wintypes.HANDLE(job), wintypes.HANDLE(handle))
-        )
+        return bool(kernel32.AssignProcessToJobObject(job, handle))
     finally:
-        kernel32.CloseHandle(wintypes.HANDLE(handle))
+        kernel32.CloseHandle(handle)
 
 
 def _terminate_job(job: int) -> None:
     """杀掉作业对象内仍存活的所有进程，并关闭句柄。"""
     if os.name != "nt":
         return
-    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
-    kernel32.TerminateJobObject(wintypes.HANDLE(job), 0)
-    kernel32.CloseHandle(wintypes.HANDLE(job))
+    kernel32 = _kernel32()
+    kernel32.TerminateJobObject(job, 0)
+    kernel32.CloseHandle(job)
 
 
 def main() -> int:

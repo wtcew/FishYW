@@ -41,7 +41,7 @@ Name: "desktopicon"; Description: "创建桌面快捷方式"; GroupDescription: 
 Name: "quicklaunchicon"; Description: "创建快速启动栏快捷方式"; GroupDescription: "附加任务："; Flags: unchecked
 
 [Files]
-Source: "{#PortableDir}\App\*"; DestDir: "{app}\App"; Excludes: ".env,.env.local"; Flags: recursesubdirs ignoreversion createallsubdirs
+Source: "{#PortableDir}\App\*"; DestDir: "{app}\App"; Excludes: ".env,.env.local,__pycache__,.mimosa,.pytest_cache"; Flags: recursesubdirs ignoreversion createallsubdirs
 Source: "{#PortableDir}\FishCloud.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PortableDir}\启动FishCloud.bat"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "{#PortableDir}\停止FishCloud.bat"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist

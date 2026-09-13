@@ -119,6 +119,16 @@ def start_server(port: int, error_holder: dict, handle: dict) -> None:
         raise
 
 
+def _direct_opener() -> urllib.request.OpenerDirector:
+    """返回禁用一切代理的 opener。
+
+    桌面端只访问自己的回环地址；而 ``urllib`` 默认会读 Windows 注册表里的系统代理，
+    把 ``127.0.0.1`` 的请求也发给代理（代理出于 SSRF 防护往往对 loopback 返回 404），
+    表现为"服务永远未就绪"。装了网络加速器 / 抓包工具的机器上必现，因此这里显式绕过。
+    """
+    return urllib.request.build_opener(urllib.request.ProxyHandler({}))
+
+
 def wait_ready(port: int, error_holder: dict, timeout: float = 120.0) -> bool:
     """轮询健康检查直至服务就绪。
 
@@ -133,18 +143,23 @@ def wait_ready(port: int, error_holder: dict, timeout: float = 120.0) -> bool:
     Raises:
         BaseException: 服务线程抛出的异常原样上抛，保证崩溃留痕。
     """
+    opener = _direct_opener()
     deadline = time.time() + timeout
+    last_error: Exception | None = None
     while time.time() < deadline:
         if "error" in error_holder:
             raise error_holder["error"]
         try:
-            with urllib.request.urlopen(
-                f"http://{HOST}:{port}/api/v1/health", timeout=2
-            ) as response:
+            with opener.open(f"http://{HOST}:{port}/api/v1/health", timeout=2) as response:
                 if response.status == 200:
                     return True
-        except Exception:  # noqa: BLE001 - 未就绪时静默重试
+                last_error = RuntimeError(f"HTTP {response.status}")
+        except Exception as exc:  # noqa: BLE001 - 未就绪时静默重试
+            last_error = exc
             time.sleep(0.5)
+    if last_error is not None:
+        # 就绪失败必须留痕：否则用户只看到"窗口没出来"，无法定位
+        logger.error("健康检查最后一次失败原因: %s: %s", type(last_error).__name__, last_error)
     return False
 
 
@@ -162,7 +177,27 @@ def apply_window_icon() -> None:
     import ctypes
 
     user32 = ctypes.WinDLL("user32", use_last_error=True)
-    user32.EnumWindows.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
+    EnumProc = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+    # 显式声明原型：未声明时 64 位句柄会被 ctypes 截断成 32 位 int。
+    user32.EnumWindows.argtypes = [EnumProc, wintypes.LPARAM]
+    user32.EnumWindows.restype = wintypes.BOOL
+    user32.LoadImageW.argtypes = [
+        wintypes.HINSTANCE,
+        wintypes.LPCWSTR,
+        wintypes.UINT,
+        ctypes.c_int,
+        ctypes.c_int,
+        wintypes.UINT,
+    ]
+    user32.LoadImageW.restype = wintypes.HANDLE
+    user32.SendMessageW.argtypes = [wintypes.HWND, wintypes.UINT, wintypes.WPARAM, wintypes.LPARAM]
+    user32.SendMessageW.restype = wintypes.LPARAM
+    user32.IsWindowVisible.argtypes = [wintypes.HWND]
+    user32.IsWindowVisible.restype = wintypes.BOOL
+    user32.GetWindowTextLengthW.argtypes = [wintypes.HWND]
+    user32.GetWindowTextLengthW.restype = ctypes.c_int
+    user32.GetWindowTextW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
+    user32.GetWindowTextW.restype = ctypes.c_int
 
     IMAGE_ICON = 1
     LR_LOADFROMFILE = 0x0010
@@ -176,8 +211,6 @@ def apply_window_icon() -> None:
     if not handle:
         logger.info("窗口图标加载失败，跳过")
         return
-
-    EnumProc = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
 
     for _ in range(60):  # 最多等 30 秒，窗口出现即贴图标
         found: list[int] = []
@@ -257,6 +290,10 @@ def main() -> None:
         sys.exit(1)
 
     import webview
+
+    # WebView2 同样会继承系统代理：显式要求它直连，否则窗口加载 http://127.0.0.1 时
+    # 也可能被代理拦下（用户装了加速器 / 代理工具时必现）。
+    os.environ.setdefault("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS", "--no-proxy-server")
 
     webview.create_window(
         APP_TITLE,

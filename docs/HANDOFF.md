@@ -47,6 +47,9 @@
 6. **注册预检 fail-open**：前端预检 registration-status 失败时必须照常显示注册入口（fail-closed 曾导致注册入口消失，被用户打回）。
 7. uvicorn "Started server process" ≠ 就绪，判据是 `Uvicorn running on ...`；TestClient 下 BackgroundTasks 在 post 返回前已执行（无法经 HTTP 观察研判中间态）。
 8. Git Bash curl 中文 JSON 报错 → 用 httpx；robocopy 放 powershell -Command；pytest 一律 `python -B -m pytest -p no:cacheprovider`；尾部 resource_tracker RLock 噪音无害。
+9. **系统代理劫持回环**：本机开着系统代理（注册表 `ProxyEnable=1`, `127.0.0.1:26561`，ProxyOverride 未含 localhost）时，Python `urllib` 会把 `http://127.0.0.1:8780/...` 的请求也发给代理，代理对 loopback 返回 404 → 桌面端**永远"服务未就绪"**、窗口不出现。桌面壳已改用 `ProxyHandler({})` 直连 + WebView2 加 `--no-proxy-server`（`desktop/fishcloud_desktop.py`）。注意 `curl` 不读注册表代理，用它验证会得到"一切正常"的假象。
+10. **ctypes 句柄截断**：未声明 `argtypes/restype` 时 64 位 HANDLE 会被当成 32 位 int，`OpenProcess/CreateJobObject/QueryFullProcessImageName` 这类 API 会静默失败。`desktop/winproc.py` 与 `launcher_exe.py` 已全量显式声明原型。
+11. **打包必排密钥**：`release/免安装版/App/.env` 含真实 GLM/JWT/Webhook 密钥，zip 与安装包都必须排除（`make_release.py` 的 FORBIDDEN + `.iss` 的 `Excludes`，`--verify` 二次确认）；另外 `__pycache__` / `.mimosa` 也要清，否则包体虚胖且带工具残留。
 
 ## 六、Phase 1 状态（✅ 基线 f8a2ef0）
 
@@ -64,9 +67,32 @@ Q1 深色侧栏✅ / Q2 注册默认开✅（`GET /auth/registration-status` + f
 
 **剩余待办（快照，权威版在记忆 next-session-todos.md）**：①测试同步+全量回归（Tester 代理进行中：conftest 假签名、register 默认开、Q10/Q11 用例）；②渐变配色第二轮迭代（用户反馈"太单一"→模块色族扩大到 KPI 卡/标题/表头/按钮/徽章/侧栏激活态，admin 深蓝→紫隔离；Frontend 代理进行中）；③页面巡查系统（实跑截图全状态+本地走查页：反馈框/三标记/本地保存/MD+JSON 导出/轮次回归）；④HANDOFF/记忆同步（本文档即产物）；⑤git 提交；⑥glm-4.7-flash 恢复后跑真实研判。
 
-## 八、桌面打包（✅ 已交付）
+## 八、桌面打包与发布（✅ v1.0.0 已发布）
 
-`release/免安装版/`：`App/`（便携 python + 156 包 + core/src/frontend_dist/desktop/.env.example）+ `启动FishCloud.bat`（自动注入 TMP/HF/缓存环境变量）。旧 PyInstaller 路线已弃（spec 已删）。分发新机：模型不随包（首启联网下载），需 WebView2 Runtime；首次使用复制 `.env.example`→`.env` 填凭据。
+**产物**（`release/`，gitignore 覆盖，不进版本库）：
+
+| 文件 | 体积 | 说明 |
+| --- | --- | --- |
+| `release/免安装版/FishCloud-Portable-1.0.0.zip` | 1342.6 MB | 根目录 `FishCloud/`，解压即用；32,648 个文件 |
+| `release/installer/FishCloud-Setup-1.0.0.exe` | 248.7 MB | Inno Setup 向导（条款页 / 安装位置 / 桌面与快速启动图标 / 开始菜单「停止 FishCloud」） |
+
+**已发布到 GitHub Release v1.0.0**：https://github.com/wtcew/FishYW/releases/tag/v1.0.0
+（仓库 `wtcew/FishYW`，远端完整性已用 Range 抽样校验：ZIP 头/中央目录/EOCD 条目数、安装包 PE 头与字节数全部一致。）
+
+**一键打包**（替代手工 robocopy/pyinstaller）：
+
+```bash
+python desktop/icon/make_icon.py --variant merged    # 品牌图标（.ico/.png/.svg）
+python desktop/make_release.py --all                 # 同步+重建 exe+打 zip+密钥自检
+ISCC.exe desktop/installer/FishCloud.iss             # 安装版（约 5–7 分钟）
+```
+
+**桌面端要点**：
+
+- 图标 `desktop/icon/fishcloud.ico`（16–256 多尺寸）→ exe 本体 / 安装向导 / 快捷方式；窗口与任务栏图标由桌面壳 `WM_SETICON` 运行时贴上（实测日志 `窗口图标已应用: fishcloud.ico`）。
+- 进程回收三层：① 启动器 Job Object（`KILL_ON_JOB_CLOSE`，父死子全死，含 WebView2）；② 桌面壳收尾「停服务→`dispose_engine()`→清子进程→`os._exit`」；③ 兜底脚本 `停止FishCloud.bat`（`desktop/stop_fishcloud.py`，按镜像路径 + 进程树精确匹配）。实测：关窗后 **5 秒内**进程全部退出。
+- 代理环境适配：健康检查用 `ProxyHandler({})` 直连、WebView2 加 `--no-proxy-server`（见踩坑 9）。
+- 分发新机：模型不随包（首启联网下载 4.4GB），需 WebView2 Runtime；首次使用复制 `App/.env.example` → `App/.env` 填凭据。**App/.env 永久排除在发布包之外**。
 
 ## 九、配置（agentic-rag-ops/.env，gitignore 覆盖，禁止提交）
 

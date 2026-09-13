@@ -4,6 +4,10 @@
 之所以不用 ``taskkill``/``wmic``：桌面版要能在任意机器上零依赖运行，
 且不引入任何 shell 拼接（避免命令行注入面）。
 
+实现要点：**所有 Win32 原型都显式声明 ``argtypes`` / ``restype``**。
+ctypes 在未声明时的默认转换会把 64 位 HANDLE 截断成 32 位 int，
+在这类"传句柄"的 API 上是隐蔽的真 bug。
+
 所有句柄都在 ``try/finally`` 中关闭；权限不足的进程会被跳过而不是抛异常。
 """
 
@@ -21,7 +25,6 @@ TH32CS_SNAPPROCESS = 0x00000002
 PROCESS_TERMINATE = 0x0001
 PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
 MAX_PATH = 260
-INVALID_HANDLE_VALUE = ctypes.c_void_p(-1).value
 
 
 class PROCESSENTRY32W(ctypes.Structure):
@@ -41,6 +44,27 @@ class PROCESSENTRY32W(ctypes.Structure):
     ]
 
 
+kernel32.CreateToolhelp32Snapshot.argtypes = [wintypes.DWORD, wintypes.DWORD]
+kernel32.CreateToolhelp32Snapshot.restype = wintypes.HANDLE
+kernel32.Process32FirstW.argtypes = [wintypes.HANDLE, ctypes.POINTER(PROCESSENTRY32W)]
+kernel32.Process32FirstW.restype = wintypes.BOOL
+kernel32.Process32NextW.argtypes = [wintypes.HANDLE, ctypes.POINTER(PROCESSENTRY32W)]
+kernel32.Process32NextW.restype = wintypes.BOOL
+kernel32.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+kernel32.OpenProcess.restype = wintypes.HANDLE
+kernel32.TerminateProcess.argtypes = [wintypes.HANDLE, wintypes.UINT]
+kernel32.TerminateProcess.restype = wintypes.BOOL
+kernel32.QueryFullProcessImageNameW.argtypes = [
+    wintypes.HANDLE,
+    wintypes.DWORD,
+    wintypes.LPWSTR,
+    ctypes.POINTER(wintypes.DWORD),
+]
+kernel32.QueryFullProcessImageNameW.restype = wintypes.BOOL
+kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+kernel32.CloseHandle.restype = wintypes.BOOL
+
+
 @dataclass(frozen=True)
 class ProcessInfo:
     """一条进程记录。"""
@@ -51,10 +75,25 @@ class ProcessInfo:
     exe: str
 
 
+def image_path(pid: int) -> str:
+    """返回指定进程的镜像全路径；无权限或已退出时返回空串。"""
+    handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+    if not handle:
+        return ""
+    try:
+        size = wintypes.DWORD(MAX_PATH * 4)
+        buffer = ctypes.create_unicode_buffer(size.value)
+        if kernel32.QueryFullProcessImageNameW(handle, 0, buffer, ctypes.byref(size)):
+            return buffer.value
+        return ""
+    finally:
+        kernel32.CloseHandle(handle)
+
+
 def iter_processes() -> list[ProcessInfo]:
     """枚举当前所有进程（含父进程 id 与镜像全路径，取不到路径时为空串）。"""
     snapshot = kernel32.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)
-    if snapshot == INVALID_HANDLE_VALUE:
+    if not snapshot or snapshot == wintypes.HANDLE(-1).value:
         return []
 
     processes: list[ProcessInfo] = []
@@ -76,21 +115,6 @@ def iter_processes() -> list[ProcessInfo]:
     finally:
         kernel32.CloseHandle(snapshot)
     return processes
-
-
-def image_path(pid: int) -> str:
-    """返回指定进程的镜像全路径；无权限或已退出时返回空串。"""
-    handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
-    if not handle:
-        return ""
-    try:
-        size = wintypes.DWORD(MAX_PATH * 4)
-        buffer = ctypes.create_unicode_buffer(size.value)
-        if kernel32.QueryFullProcessImageNameW(handle, 0, buffer, ctypes.byref(size)):
-            return buffer.value
-        return ""
-    finally:
-        kernel32.CloseHandle(handle)
 
 
 def terminate(pid: int) -> bool:
@@ -140,9 +164,8 @@ def kill_tree(pid: int, exclude: set[int] | None = None) -> int:
 def fishcloud_processes(root: Path) -> list[ProcessInfo]:
     """找出属于指定安装根目录的全部 FishCloud 进程。
 
-    判定规则（二者其一）：
-    * 镜像路径位于 ``root`` 之内（便携 Python / 应用线程）；
-    * 进程名为 ``FishCloud.exe`` 且镜像路径位于 ``root`` 之内（启动器本体）。
+    判定规则：镜像路径位于 ``root`` 之内（便携 Python、应用线程、启动器本体
+    都在这个目录树下，因此一条规则即可覆盖整棵树）。
 
     Args:
         root: FishCloud 根目录（免安装版目录或安装目录）。

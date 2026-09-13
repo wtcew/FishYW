@@ -36,11 +36,12 @@ APP_VERSION = "1.0.0"
 
 #: 绝不进包的敏感文件（相对 App/ 的路径）。
 FORBIDDEN = (".env", ".env.local", ".env.production")
-SKIP_DIRS = {"__pycache__", ".pytest_cache", "node_modules", ".git"}
+#: 不进包的目录名：缓存、依赖与本地工具残留。
+SKIP_DIRS = {"__pycache__", ".pytest_cache", "node_modules", ".git", ".mimosa"}
 
 
 def mirror(source: Path, target: Path) -> int:
-    """把目录镜像到目标位置（多余文件删除），跳过缓存目录。返回复制的文件数。"""
+    """把目录镜像到目标位置（多余文件删除，含缓存与工具残留），返回复制的文件数。"""
     if not source.is_dir():
         raise SystemExit(f"源目录不存在: {source}")
     target.mkdir(parents=True, exist_ok=True)
@@ -58,14 +59,19 @@ def mirror(source: Path, target: Path) -> int:
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(item, destination)
         copied += 1
+    # 清掉目标里"源已没有"的文件，以及源里被跳过的缓存/残留目录
     for existing in sorted(target.rglob("*"), reverse=True):
+        if existing.is_dir():
+            if existing.name in SKIP_DIRS:
+                shutil.rmtree(existing, ignore_errors=True)
+            continue
         if any(part in SKIP_DIRS for part in existing.parts):
             continue
         if existing.relative_to(target) not in wanted:
-            if existing.is_dir():
-                existing.rmdir()
-            else:
-                existing.unlink()
+            existing.unlink()
+    for existing in sorted(target.rglob("*"), reverse=True):
+        if existing.is_dir() and not any(existing.iterdir()):
+            existing.rmdir()
     return copied
 
 
@@ -87,6 +93,16 @@ def write_stop_bat() -> Path:
     return bat
 
 
+def purge_junk() -> int:
+    """清理 App/ 下的缓存与工具残留目录（__pycache__ / .mimosa 等），返回删除目录数。"""
+    removed = 0
+    for path in sorted(APP.rglob("*"), reverse=True):
+        if path.is_dir() and path.name in SKIP_DIRS:
+            shutil.rmtree(path, ignore_errors=True)
+            removed += 1
+    return removed
+
+
 def sync() -> None:
     """把仓库源码与前端产物同步进免安装版 App 目录。"""
     APP.mkdir(parents=True, exist_ok=True)
@@ -103,8 +119,9 @@ def sync() -> None:
     shutil.copy2(ROOT / ".env.example", APP / ".env.example")
     shutil.copy2(ROOT / "requirements.txt", APP / "requirements.txt")
     total += 2
+    purge_junk()
     write_stop_bat()
-    print(f"同步完成：{total} 个文件 → {APP}")
+    print(f"同步完成：{total} 个文件 → {APP}（缓存与工具残留已清理）")
 
 
 def build_exe() -> None:
