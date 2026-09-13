@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FishCloud 页面走查 · 第 1 轮</title>
+<style>
+  :root{--ink:#1f2329;--line:#d0d3d8;--soft:#7a7f87;--ok:#2e7d32;--fix:#b26a00;--block:#c62828;--bg:#f5f6f8;--card:#fff;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:"Segoe UI",system-ui,"Microsoft YaHei",sans-serif;color:var(--ink);background:var(--bg);font-size:13.5px;line-height:1.6;padding:28px 34px 90px;}
+  h1{font-size:21px;} h2{font-size:16px;margin:0;} h3{font-size:14px;}
+  .head{max-width:1080px;margin:0 auto 18px;}
+  .head p{color:var(--soft);}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0 22px;max-width:1080px;margin-inline:auto;}
+  .toolbar .spacer{flex:1;}
+  .savehint{color:var(--soft);font-size:12px;}
+  button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:6px;padding:6px 14px;}
+  button:hover{border-color:var(--ink);}
+  .group{max-width:1080px;margin:0 auto 30px;}
+  .group>header{display:flex;gap:10px;align-items:baseline;border-left:4px solid var(--ink);padding:4px 10px;background:var(--card);border-radius:0 6px 6px 0;margin-bottom:12px;}
+  .group>header .no{color:var(--soft);font-weight:700;}
+  .group>header p{color:var(--soft);font-size:12.5px;}
+  .shot{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:18px;box-shadow:0 1px 2px rgba(0,0,0,.04);}
+  .shot.changed{border-color:#7E22CE;box-shadow:0 0 0 1px #7E22CE;}
+  .shot header{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline;margin-bottom:8px;}
+  .shot header .name{font-weight:700;font-size:14.5px;}
+  .shot header .state{background:#eef1f4;border-radius:10px;padding:0 10px;font-size:12px;}
+  .shot header .changed-badge{background:#7E22CE;color:#fff;border-radius:10px;padding:0 10px;font-size:11.5px;}
+  .shot img{width:100%;border:1px solid var(--line);border-radius:6px;display:block;background:#fafafa;}
+  .shot .missing{border:1.5px dashed var(--line);border-radius:6px;padding:46px 10px;text-align:center;color:var(--soft);}
+  .shot .how{margin:8px 0 10px;font-size:12.5px;color:var(--ink);background:#f6f7f9;border-radius:6px;padding:6px 10px;}
+  .shot .how b{color:var(--soft);font-weight:600;margin-right:6px;}
+  .marks{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap;}
+  .mark{padding:4px 16px;border-radius:14px;border:1.5px solid var(--line);background:#fff;font-size:12.5px;color:var(--soft);}
+  .mark.on-ok{background:#e6f4ea;border-color:var(--ok);color:var(--ok);font-weight:700;}
+  .mark.on-fix{background:#fff4e0;border-color:var(--fix);color:var(--fix);font-weight:700;}
+  .mark.on-block{background:#fdecea;border-color:var(--block);color:var(--block);font-weight:700;}
+  textarea{width:100%;min-height:52px;resize:vertical;font:inherit;border:1px solid var(--line);border-radius:6px;padding:7px 10px;}
+  textarea:focus{outline:2px solid #2563EB22;border-color:#2563EB;}
+  .prev{margin-top:8px;border-left:3px solid #b8bec6;background:#f6f7f9;border-radius:0 6px 6px 0;padding:6px 10px;font-size:12.5px;color:#555b63;white-space:pre-wrap;}
+  .prev b{display:block;font-size:11.5px;color:var(--soft);}
+  .groupfb{background:var(--card);border:1px dashed var(--line);border-radius:8px;padding:12px 14px;}
+  .groupfb h3{margin-bottom:6px;color:var(--soft);font-weight:600;font-size:13px;}
+  footer{max-width:1080px;margin:30px auto 0;color:var(--soft);font-size:12px;text-align:center;}
+</style>
+</head>
+<body>
+
+<div class="head">
+  <h1>FishCloud 页面走查 · 第 <span id="roundNo">1</span> 轮</h1>
+  <p>按用户真实使用顺序分组；自上而下看完 = 一次完整产品体验。每屏：页面名称 · 当前状态 · 复现方式 · 反馈框 + 「可以 / 待改 / 阻塞」快捷标记。反馈自动保存于本浏览器（localStorage），可随时关页回来继续。</p>
+  <p>截图缺失的屏显示占位框，不影响填写反馈。导出的 Markdown / JSON 可直接交给 AI 修改。</p>
+</div>
+
+<div class="toolbar">
+  <button id="btnExportMd">导出 Markdown</button>
+  <button id="btnExportJson">导出 JSON</button>
+  <span class="spacer"></span>
+  <span class="savehint" id="saveHint">反馈自动保存中…</span>
+</div>
+
+<div id="app"></div>
+
+<footer id="foot"></footer>
+
+<script>
+"use strict";
+/* ═══════════ 配置区：每轮走查只改这里 ═══════════
+   ROUND：本轮编号（递增）；上一轮反馈自动带出原话。
+   CHANGED：相对上一轮有改动的屏 id —— 走查页自动加紫色标记，方便逐条回归。 */
+const ROUND = 1;
+const CHANGED_SINCE_LAST = [];   // 例：["s09","s19"]
+
+/* 流程分组（按用户真实使用顺序）。shot = docs/walkthrough-shots/ 下的文件名。 */
+const GROUPS = [
+  { id:"g1", title:"部署与进入", intro:"拿到免安装包/启动后端后的第一屏：登录、失败分支、注册三态。",
+    screens:[
+      { id:"s01", name:"登录页", state:"初始公开态（未登录自动跳转至此）", how:"浏览器打开应用首页；或 npm run dev 后访问 http://127.0.0.1:5173/#/login", shot:"s01-login.png" },
+      { id:"s02", name:"登录页", state:"登录失败（401 错误口令/账号停用）", how:"输入 admin + 故意错误的密码提交；错误文案原样展示", shot:"s02-login-fail.png" },
+      { id:"s03", name:"注册页", state:"开放态（默认开启，注册后待管理员启用）", how:"登录页点「注册新账号」；填写表单提交后应提示待启用并回到登录页", shot:"s03-register.png" },
+      { id:"s04", name:"注册页", state:"关闭态（403 提示，入口隐藏/表单禁用）", how:".env 将 PLATFORM_ALLOW_REGISTRATION=false 重启后端，再访问 /register（截完改回 true）", shot:"s04-register-closed.png" },
+    ]},
+  { id:"g2", title:"首次使用与空态", intro:"空态核查：列表必须呈现真实空态/无结果，绝不出现假数据。空库首用的复现方式见各屏。",
+    screens:[
+      { id:"s05", name:"运行概览", state:"运行态（有数据；空库复现=清空 fish 库业务表后登录，KPI 全 0）", how:"浏览器打开应用首页，admin 登录后的默认落地页", shot:"s05-overview.png" },
+      { id:"s06", name:"资产列表", state:"查询无结果空态", how:"资产列表关键字输入「zzz-无此资产-xyz」点查询；全新部署（清空 fish 库）时首屏即真实空态", shot:"s06-assets-empty.png" },
+      { id:"s07", name:"事件列表", state:"查询无结果空态", how:"事件列表关键字输入「zzz-无此事件-xyz」点查询；全新部署时首屏即真实空态", shot:"s07-events-empty.png" },
+    ]},
+  { id:"g3", title:"基础数据准备（资产登记）", intro:"CMDB 三层：业务线 → 环境 → 资产；含唯一冲突分支。",
+    screens:[
+      { id:"s09", name:"业务线/环境管理", state:"创建成功", how:"资源中心页内创建业务线与生产环境", shot:"s09-cmdb.png" },
+      { id:"s10", name:"资产登记表单", state:"表单校验态", how:"资产列表 → ＋登记资产；必填校验与环境级联", shot:"s10-asset-form.png" },
+      { id:"s11", name:"资产列表", state:"有数据 + 过滤", how:"登记 1-2 台主机后查看列表与筛选", shot:"s11-assets.png" },
+      { id:"s12", name:"资产登记表单", state:"唯一冲突 409（同环境同类型同标识）", how:"用相同标识再次保存，应提示冲突而非崩溃", shot:"s12-asset-409.png" },
+    ]},
+  { id:"g4", title:"告警接入（webhook）", intro:"外部系统 → 平台的机器入口；token 三态与规则命中。",
+    screens:[
+      { id:"s13", name:"webhook 接入", state:"接入成功（事件创建+规则命中时间线）", how:"curl -X POST http://127.0.0.1:8000/api/v1/events/webhook/zabbix -H \"X-Webhook-Token: <.env 中 token>\" -H \"Content-Type: application/json\" -d '{\"title\":\"CPU 使用率持续过高\",\"severity\":\"critical\",\"asset_identifier\":\"<资产标识>\"}'", shot:"s13-webhook.png" },
+      { id:"s14", name:"事件列表", state:"告警进入（open 态、webhook 来源）", how:"发送 webhook 后刷新事件中心", shot:"s14-events.png" },
+      { id:"s15", name:"告警规则管理", state:"规则 CRUD（admin Tab）", how:"/admin?tab=rules；新建一条 contains CPU 规则并开启自动研判", shot:"s15-rules.png" },
+    ]},
+  { id:"g5", title:"事件处置", intro:"事件详情的时间线、状态流转与评论。",
+    screens:[
+      { id:"s16", name:"事件详情", state:"open 态（信息卡 + 时间线）", how:"事件列表点开 webhook 告警", shot:"s16-event-detail.png" },
+      { id:"s17", name:"事件详情", state:"已认领（acknowledged，按钮随之变化）", how:"详情点「认领」；时间线出现状态流转+认领人", shot:"s17-event-ack.png" },
+      { id:"s18", name:"手工登记事件", state:"登记成功", how:"事件列表 → ＋手工登记（可无资产）", shot:"s18-manual-event.png" },
+    ]},
+  { id:"g6", title:"AI 研判", intro:"触发 → 轮询 → 收敛；四种终态与证据引用。",
+    screens:[
+      { id:"s19", name:"研判面板", state:"running（触发 202 轮询中）", how:"事件详情点「触发 AI 研判」立即截图", shot:"s19-diag-running.png" },
+      { id:"s20", name:"研判面板", state:"completed（根因/建议/置信度/[E n] 证据）", how:"等待收敛（glm-4.7-flash 繁忙时先切 glm-4-flash）", shot:"s20-diag-done.png" },
+      { id:"s21", name:"研判面板", state:"degraded / failed / timeout", how:"降级：仅资产证据无知识命中；失败：停后端或清空 key；超时：DIAGNOSIS_TIMEOUT_SECONDS=5", shot:"s21-diag-degraded.png" },
+      { id:"s22", name:"研判历史", state:"多条记录（列表端点取数，倒序）", how:"同一事件触发 2+ 次后查看历史区", shot:"s22-diag-history.png" },
+      { id:"s23", name:"模型选择器", state:"免费双模型切换 + 自定义", how:"问答输入区切换器展开；或 /settings 模型接入", shot:"s23-model-picker.png" },
+    ]},
+  { id:"g7", title:"AIOps 工具组", intro:"问答/知识/检索/评估/链路，全部真实接口。",
+    screens:[
+      { id:"s24", name:"智能问答", state:"后端模式回答（SSE 节点流）", how:"AIOps → 智能问答提问（未配直连 Key 时自动走后端）", shot:"s24-chat.png" },
+      { id:"s25", name:"知识库", state:"上传排队→索引完成", how:"知识库上传 .md/.txt，观察进度与列表", shot:"s25-knowledge.png" },
+      { id:"s26", name:"检索调参", state:"真实命中 + 相关度", how:"检索页查询已上传内容关键词", shot:"s26-retrieval.png" },
+      { id:"s27", name:"评估", state:"后台任务 + 指标结果", how:"评估页触发并轮询结果", shot:"s27-eval.png" },
+      { id:"s28", name:"Agent 链路", state:"trace 明细 / 无 trace", how:"链路页输入研判的 trace_id（研判详情可查）", shot:"s28-agent.png" },
+    ]},
+  { id:"g8", title:"系统管理（管理员专属）", intro:"仅 admin 可见；与业务页视觉隔离（深蓝→紫渐变族）。",
+    screens:[
+      { id:"s29", name:"用户管理", state:"列表/新建/重置密码", how:"/admin?tab=users；试建用户与重置密码（一次性密码展示）", shot:"s29-users.png" },
+      { id:"s30", name:"角色", state:"只读三角色", how:"/admin?tab=roles", shot:"s30-roles.png" },
+      { id:"s31", name:"审计日志", state:"过滤与倒序分页", how:"/admin?tab=audit；按 action/username 过滤", shot:"s31-audit.png" },
+      { id:"s32", name:"系统健康", state:"DB 连通/表行数/版本", how:"/admin?tab=health", shot:"s32-health.png" },
+      { id:"s33", name:"管理员视觉差异化", state:"admin 渐变族与业务页隔离", how:"对比侧栏「系统管理」组激活态与业务组；五 Tab 页头/按钮均为深蓝→紫族", shot:"s33-admin-style.png" },
+    ]},
+  { id:"g9", title:"权限与异常", intro:"非 admin 视角、会话失效、后端未就绪。",
+    screens:[
+      { id:"s34", name:"viewer/operator 视角", state:"菜单条目级差异 + 写按钮隐藏", how:"用 user01（operator）登录；对比 admin 的侧栏与按钮；直连管理接口应 403", shot:"s34-viewer.png" },
+      { id:"s35", name:"会话过期", state:"401 → 清 token 回登录页", how:"清除浏览器存储中的 token 或等过期后任意操作", shot:"s35-401.png" },
+      { id:"s36", name:"后端未就绪", state:"503 明确报错（不伪造数据）", how:"停止后端进程后刷新概览/检索页；截完重启后端", shot:"s36-503.png" },
+    ]},
+  { id:"g10", title:"主题与外观", intro:"三品牌配色 + 明暗正交；渐变随主题自动跟随。",
+    screens:[
+      { id:"s37", name:"主题 · blue-pink（默认）", state:"蓝粉品牌 + 渐变模块色族", how:"侧栏底部配色切换器选 blue-pink；概览页整屏", shot:"s37-themes-blue-pink.png" },
+      { id:"s38", name:"主题 · teal", state:"青绿品牌（暗色组合另验）", how:"切换器选 teal，看页头条/按钮/表头/侧栏", shot:"s37-themes-teal.png" },
+      { id:"s39", name:"主题 · zhu", state:"朱砂品牌（原版回退）", how:"切换器选 zhu，看页头条/按钮/表头/侧栏", shot:"s37-themes-zhu.png" },
+    ]},
+];
+
+/* ═══════════ 以下为引擎，一般无需改动 ═══════════ */
+const KEY = (scope, id) => `fishcloud.walk.r${ROUND}.${scope}.${id}`;
+const $ = (sel) => document.querySelector(sel);
+const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+let saveTimer = null;
+
+function read(scope, id) {
+  try { return JSON.parse(localStorage.getItem(KEY(scope, id)) || "{}"); } catch { return {}; }
+}
+function write(scope, id, data) {
+  data.ts = Date.now();
+  localStorage.setItem(KEY(scope, id), JSON.stringify(data));
+  const h = $("#saveHint");
+  h.textContent = "已自动保存 " + new Date().toLocaleTimeString();
+}
+function prevRoundData(scope, id) {
+  if (ROUND <= 1) return null;
+  try { return JSON.parse(localStorage.getItem(`fishcloud.walk.r${ROUND - 1}.${scope}.${id}`) || "null"); }
+  catch { return null; }
+}
+
+function render() {
+  $("#roundNo").textContent = String(ROUND);
+  const app = $("#app");
+  let html = "";
+  GROUPS.forEach((g, gi) => {
+    html += `<section class="group" data-g="${g.id}">
+      <header><span class="no">${String(gi + 1).padStart(2, "0")}</span><h2>${esc(g.title)}</h2><p>${esc(g.intro || "")}</p></header>`;
+    g.screens.forEach((s) => {
+      const changed = CHANGED_SINCE_LAST.includes(s.id);
+      html += `<div class="shot${changed ? " changed" : ""}" id="shot-${s.id}">
+        <header>
+          <span class="name">${esc(s.name)} <span style="color:var(--soft);font-weight:400">· ${s.id}</span></span>
+          <span class="state">状态：${esc(s.state)}</span>
+          ${changed ? '<span class="changed-badge">本轮有改动</span>' : ""}
+        </header>
+        <img src="walkthrough-shots/${encodeURIComponent(s.shot)}" alt="${esc(s.name)} 截图"
+             onerror="this.outerHTML='<div class=\\'missing\\'>截图待补：walkthrough-shots/${esc(s.shot)}</div>'">
+        <p class="how"><b>复现方式</b>${esc(s.how)}</p>
+        <div class="marks" role="group" aria-label="快捷标记">
+          <button class="mark" data-m="ok" data-s="${s.id}">可以</button>
+          <button class="mark" data-m="fix" data-s="${s.id}">待改</button>
+          <button class="mark" data-m="block" data-s="${s.id}">阻塞</button>
+        </div>
+        <textarea data-t="${s.id}" placeholder="本屏反馈（自动保存）：问题、期望、复现补充…"></textarea>
+        <div class="prev" data-p="${s.id}" hidden></div>
+      </div>`;
+    });
+    html += `<div class="groupfb">
+        <h3>本组整体反馈（${esc(g.title)}）</h3>
+        <textarea data-g="${g.id}" placeholder="这组流程的整体问题/顺序/遗漏…（自动保存）"></textarea>
+        <div class="prev" data-pg="${g.id}" hidden></div>
+      </div></section>`;
+  });
+  html += `<div class="groupfb" style="max-width:1080px;margin:0 auto 30px;">
+      <h3>全走查总结</h3><textarea data-g="__total__" placeholder="整体结论、阻塞项汇总、下一轮重点…（自动保存）"></textarea></div>`;
+  app.innerHTML = html;
+
+  // 回填已存数据 + 上一轮原话
+  GROUPS.forEach((g) => {
+    const gf = read("g", g.id);
+    const gta = document.querySelector(`textarea[data-g="${g.id}"]`);
+    if (gta && gf.note) gta.value = gf.note;
+    const gp = prevRoundData("g", g.id);
+    const gpEl = document.querySelector(`.prev[data-pg="${g.id}"]`);
+    if (gp && gpEl && (gp.note || gp.mark)) {
+      gpEl.hidden = false;
+      gpEl.innerHTML = `<b>上一轮（第 ${ROUND - 1} 轮）原话${gp.mark ? " · 标记：" + markLabel(gp.mark) : ""}</b>${esc(gp.note || "（无文字）")}`;
+    }
+    g.screens.forEach((s) => {
+      const d = read("i", s.id);
+      if (d.mark) paintMark(s.id, d.mark);
+      const ta = document.querySelector(`textarea[data-t="${s.id}"]`);
+      if (ta && d.note) ta.value = d.note;
+      const p = prevRoundData("i", s.id);
+      const pEl = document.querySelector(`.prev[data-p="${s.id}"]`);
+      if (p && pEl && (p.note || p.mark)) {
+        pEl.hidden = false;
+        pEl.innerHTML = `<b>上一轮（第 ${ROUND - 1} 轮）原话${p.mark ? " · 标记：" + markLabel(p.mark) : ""}</b>${esc(p.note || "（无文字）")}`;
+      }
+    });
+  });
+
+  // 事件绑定
+  document.querySelectorAll(".mark").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.s, m = btn.dataset.m;
+      const cur = read("i", id);
+      const next = Object.assign({}, cur, { mark: cur.mark === m ? "" : m });
+      write("i", id, next);
+      paintMark(id, next.mark);
+    });
+  });
+  document.querySelectorAll("textarea").forEach((ta) => {
+    ta.addEventListener("input", () => {
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => {
+        if (ta.dataset.t) write("i", ta.dataset.t, Object.assign({}, read("i", ta.dataset.t), { note: ta.value }));
+        else if (ta.dataset.g) write("g", ta.dataset.g, Object.assign({}, read("g", ta.dataset.g), { note: ta.value }));
+      }, 400);
+    });
+  });
+
+  $("#foot").textContent = `FishCloud 页面走查 · 第 ${ROUND} 轮 · 共 ${GROUPS.reduce((n, g) => n + g.screens.length, 0)} 屏 / ${GROUPS.length} 组 · 本轮改动标记 ${CHANGED_SINCE_LAST.length} 处`;
+}
+
+function markLabel(m) { return m === "ok" ? "可以" : m === "fix" ? "待改" : m === "block" ? "阻塞" : ""; }
+function paintMark(screenId, mark) {
+  document.querySelectorAll(`.mark[data-s="${screenId}"]`).forEach((b) => {
+    b.classList.toggle("on-ok", b.dataset.m === "ok" && mark === "ok");
+    b.classList.toggle("on-fix", b.dataset.m === "fix" && mark === "fix");
+    b.classList.toggle("on-block", b.dataset.m === "block" && mark === "block");
+  });
+}
+
+/* 导出 */
+function collect() {
+  return {
+    round: ROUND, exportedAt: new Date().toISOString(),
+    changedSinceLast: CHANGED_SINCE_LAST.slice(),
+    groups: GROUPS.map((g) => ({
+      id: g.id, title: g.title, intro: g.intro || "",
+      groupFeedback: read("g", g.id),
+      screens: g.screens.map((s) => ({
+        id: s.id, name: s.name, state: s.state, how: s.how, shot: s.shot,
+        changed: CHANGED_SINCE_LAST.includes(s.id),
+        feedback: read("i", s.id),
+        previousRound: prevRoundData("i", s.id),
+      })),
+    })),
+  };
+}
+function download(name, text, type) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], { type }));
+  a.download = name; a.click(); URL.revokeObjectURL(a.href);
+}
+$("#btnExportMd").addEventListener("click", () => {
+  const d = collect();
+  let md = `# FishCloud 页面走查反馈 · 第 ${d.round} 轮\n\n导出时间：${d.exportedAt}\n本轮改动页：${d.changedSinceLast.join(", ") || "无"}\n`;
+  d.groups.forEach((g, i) => {
+    md += `\n## ${String(i + 1).padStart(2, "0")} ${g.title}\n\n${g.intro ? "> " + g.intro + "\n" : ""}`;
+    if (g.groupFeedback.note) md += `\n**组级反馈**（${markLabel(g.groupFeedback.mark) || "未标记"}）：${g.groupFeedback.note}\n`;
+    g.screens.forEach((s) => {
+      md += `\n### ${s.id} ${s.name}（${s.state}）${s.changed ? " 【本轮有改动】" : ""}\n`;
+      md += `- 复现：${s.how}\n`;
+      md += `- 标记：${markLabel(s.feedback.mark) || "未标记"}\n`;
+      if (s.feedback.note) md += `- 反馈：${s.feedback.note}\n`;
+      if (s.previousRound && (s.previousRound.note || s.previousRound.mark))
+        md += `- 上一轮原话（${markLabel(s.previousRound.mark) || "未标记"}）：${s.previousRound.note || "（无文字）"}\n`;
+    });
+  });
+  download(`fishcloud-walkthrough-r${d.round}.md`, md, "text/markdown;charset=utf-8");
+});
+$("#btnExportJson").addEventListener("click", () => {
+  const d = collect();
+  download(`fishcloud-walkthrough-r${d.round}.json`, JSON.stringify(d, null, 2), "application/json");
+});
+
+render();
+</script>
+</body>
+</html>

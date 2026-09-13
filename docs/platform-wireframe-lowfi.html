@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FishCloud 低保真线框图 · Phase 1 全流程（依据 PRD 平铺审阅稿）</title>
+<style>
+  :root{--ink:#1a1a1a;--line:#555;--soft:#999;--fill:#ececec;--fill2:#d8d8d8;--bg:#fff;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:"Segoe UI",system-ui,-apple-system,"Microsoft YaHei",sans-serif;color:var(--ink);background:var(--bg);font-size:13px;line-height:1.55;padding:32px 40px 80px;}
+  h1{font-size:22px;margin-bottom:4px;}
+  h2{font-size:17px;margin:0 0 2px;}
+  h3{font-size:13px;margin:0 0 6px;}
+  p.doc{color:var(--soft);max-width:110ch;margin-bottom:18px;}
+  .divider{border:none;border-top:2px solid var(--ink);margin:34px 0 18px;}
+  /* 屏卡片 */
+  .screen{border:2px solid var(--ink);margin-bottom:26px;}
+  .screen>header{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline;padding:8px 12px;border-bottom:2px solid var(--ink);background:var(--fill);}
+  .screen>header .sid{font-weight:700;letter-spacing:.5px;}
+  .screen>header .meta{color:var(--soft);font-size:12px;}
+  .screen>header .src{margin-left:auto;font-size:11px;color:var(--soft);border:1px solid var(--soft);padding:1px 6px;}
+  .cols{display:grid;grid-template-columns:minmax(430px,7fr) minmax(280px,5fr);}
+  @media(max-width:980px){.cols{grid-template-columns:1fr;}}
+  .wf{padding:14px;border-right:2px solid var(--ink);}
+  @media(max-width:980px){.wf{border-right:none;border-bottom:2px solid var(--ink);}}
+  .anno{padding:14px;}
+  /* 线框元素 */
+  .browser{border:1.5px solid var(--line);margin-bottom:10px;}
+  .browser>.bar{display:flex;gap:6px;align-items:center;padding:3px 8px;border-bottom:1.5px solid var(--line);background:var(--fill);font-size:11px;color:var(--soft);}
+  .browser>.bar i{width:8px;height:8px;border:1px solid var(--line);border-radius:50%;display:inline-block;}
+  .browser>.body{padding:10px;}
+  .b{border:1.5px solid var(--line);padding:6px 8px;margin-bottom:8px;background:#fff;}
+  .b.dim{background:var(--fill);color:var(--soft);}
+  .b.fill{background:var(--fill2);}
+  .b.dash{border-style:dashed;background:#fafafa;}
+  .row{display:flex;gap:8px;flex-wrap:wrap;}
+  .row>*{flex:1 1 0;min-width:60px;}
+  .btn{display:inline-block;border:1.5px solid var(--ink);padding:2px 10px;font-size:12px;background:#fff;margin:0 6px 6px 0;}
+  .btn.pri{background:var(--ink);color:#fff;}
+  .btn.dis{border-color:var(--soft);color:var(--soft);border-style:dashed;}
+  .tag{display:inline-block;font-size:10.5px;border:1px solid var(--ink);padding:0 5px;margin:0 4px 4px 0;background:#fff;}
+  .tag.g{background:var(--fill2);}
+  .tag.q{border-style:dashed;color:var(--soft);}
+  .ph{border:1.5px dashed var(--line);background:repeating-linear-gradient(45deg,#fafafa,#fafafa 6px,#f0f0f0 6px,#f0f0f0 12px);color:var(--soft);text-align:center;padding:14px 6px;font-size:11px;margin-bottom:8px;}
+  table.wt{border-collapse:collapse;width:100%;font-size:11.5px;margin-bottom:8px;}
+  table.wt th,table.wt td{border:1px solid var(--line);padding:2px 5px;text-align:left;}
+  table.wt th{background:var(--fill);font-weight:600;}
+  /* 注释区 */
+  .anno ul{list-style:none;}
+  .anno li{padding:5px 0;border-bottom:1px dotted var(--soft);}
+  .anno li b{display:inline-block;min-width:64px;}
+  .go{font-size:11px;color:var(--soft);}
+  .go:before{content:"→ ";}
+  .variants{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;padding:0 14px 14px;}
+  .variant{border:1.5px dashed var(--line);padding:8px;}
+  .variant h4{font-size:11.5px;margin-bottom:5px;}
+  .note{font-size:11px;color:var(--soft);}
+  /* 顶部说明与登记表 */
+  .legend{border:2px solid var(--ink);padding:12px 16px;margin-bottom:22px;}
+  .legend .row{gap:14px;}
+  .qa table{border-collapse:collapse;width:100%;font-size:12px;}
+  .qa th,.qa td{border:1px solid var(--line);padding:4px 8px;text-align:left;vertical-align:top;}
+  .qa th{background:var(--fill);}
+  .screen .wf .mini{font-size:11px;color:var(--soft);}
+  code{font-family:Consolas,monospace;font-size:11.5px;background:var(--fill);padding:0 3px;}
+</style>
+</head>
+<body>
+
+<h1>FishCloud · 低保真线框图（Phase 1 全流程平铺审阅稿）</h1>
+<p class="doc">
+  依据：<code>docs/platform-backend-design.md</code>（后端 PRD：端点/权限/状态机/研判闭环）、
+  <code>docs/platform-frontend-design.md</code>（前端 PRD：路由表/视图/store）、
+  <code>docs/fishcloud-design.md</code>（视觉 PRD §三 布局蓝图，本稿仅取其结构、不取其色彩）。<br>
+  阅读方式：全部页面与关键状态<b>平铺</b>于本页（按 PRD 模块顺序排列，不代表真实使用顺序）。
+  每屏标注：页面名称 / 在流程中的位置 / 用户可执行操作 / 操作后进入的页面或状态。
+  仅黑白灰与框线，图片均为占位块。凡 PRD 未写清处标 <span class="tag q">待确认 Qn</span>，汇总见页尾登记表。
+  本稿不新增 PRD 之外的功能；实现已超出 PRD 的部分（注册页、使用指南等）如实画出并标注归属。
+</p>
+
+<div class="legend">
+  <h3>图例（全稿通用）</h3>
+  <div class="row">
+    <span class="b" style="flex:0 1 auto">实线框 = 真实界面区块</span>
+    <span class="b dash" style="flex:0 1 auto">虚线框 = 弹层/条件出现</span>
+    <span class="ph" style="flex:0 1 auto;min-width:120px;padding:6px;">斜纹块 = 图片/图表占位</span>
+    <span class="btn pri" style="flex:0 1 auto">实心 = 主按钮</span>
+    <span class="btn" style="flex:0 1 auto">空心 = 次按钮</span>
+    <span class="btn dis" style="flex:0 1 auto">虚按钮 = 禁用/无权限</span>
+  </div>
+  <div style="margin-top:6px;">
+    <span class="tag">P-后端§n</span><span class="tag">F-前端§n</span><span class="tag">V-视觉§n</span> = PRD 依据章节
+    <span class="tag g">状态</span> = 该屏的关键状态变体（画在屏下虚线格）
+    <span class="tag q">待确认 Qn</span> = PRD 未写清，见页尾登记表
+  </div>
+</div>
+
+<!-- ═══════════════ S01 全局：角色与外壳 ═══════════════ -->
+<div class="screen">
+  <header><span class="sid">S01</span><h2>全局：角色权限矩阵 + 应用外壳（导航）</h2>
+    <span class="meta">流程位置：所有页面的容器 · 登录后常驻</span>
+    <span class="src">P-后端§4.2 / F-前端§1 / V-视觉§三</span></header>
+  <div class="cols">
+    <div class="wf">
+      <h3>① 角色权限矩阵（决定一切按钮/菜单的显隐与禁用）</h3>
+      <table class="wt">
+        <tr><th>能力</th><th>admin</th><th>operator</th><th>viewer</th></tr>
+        <tr><td>登录 / 个人档案 / 改密 / 评论查看</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><td>CMDB 读（业务线/环境/资产/事件/研判）</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><td>资产写、事件登记/认领/恢复/关闭/评论</td><td>✓</td><td>✓</td><td>✗ 403</td></tr>
+        <tr><td>触发 AI 研判、告警登记</td><td>✓</td><td>✓</td><td>✗ 403</td></tr>
+        <tr><td>业务线/环境写、资产删除、用户/规则管理</td><td>✓</td><td>✗ 403</td><td>✗ 403</td></tr>
+        <tr><td>审计日志、系统健康</td><td>✓</td><td>✗</td><td>✗</td></tr>
+        <tr><td>webhook 告警入口</td><td colspan="3">不走 RBAC，走 X-Webhook-Token</td></tr>
+      </table>
+      <h3 style="margin-top:10px;">② 应用外壳（登录后所有页共用）</h3>
+      <div class="browser"><div class="bar"><i></i><i></i><i></i><span>FishCloud</span></div>
+        <div class="body">
+          <div class="b fill">顶栏：Logo「FishCloud」 ｜ 一级模块：运行概览 / 资源中心 / 事件中心 / AIOps / 可观测性 / 任务中心 / 工单系统 / 系统管理｜右侧：当前用户名+角色 · 设置 · 退出登录</div>
+          <div class="row">
+            <div class="b dim" style="flex:0 0 150px;">二级导航（当前模块的页面；单页模块自动收起）<br><span class="mini">资源中心例：资产列表<br>（资产详情为隐藏菜单）</span></div>
+            <div class="b dash">内容区（各屏 S05–S28 渲染于此）</div>
+          </div>
+          <p class="mini">菜单按 authStore.role 过滤：非 admin 看不到「系统管理」；操作按钮按 can(action) 判定显隐。</p>
+        </div>
+      </div>
+      <p class="note">⚠ 视觉 PRD（V-§三）为深色侧栏布局；实现已改为「顶栏一级 + 可折叠二级导航」。<span class="tag q">待确认 Q1</span></p>
+    </div>
+    <div class="anno"><ul>
+      <li><b>流程位置</b>：登录成功后进入；退出登录回到 S02。<span class="go">退出 → S02 登录</span></li>
+      <li><b>可执行</b>：切换模块/页面（<span class="go">→ S05–S28 对应屏</span>）；点用户名（<span class="go">→ 个人档案/改密 S04</span>）；点退出（<span class="go">→ 清 token → S02</span>）。</li>
+      <li><b>规则</b>：无 token 访问任何受保护路由 → 守卫重定向 S02（F-§1）；有 token 访问 /login → 回概览。</li>
+      <li><b>403 语义</b>：viewer/operator 点击无权按钮 → 按钮『不显示或禁用』；直连 API 被 403 → toast 提示（F-§4）。</li>
+    </ul></div>
+  </div>
+</div>
+
+<!-- ═══════════════ S02 登录 ═══════════════ -->
+<div class="screen">
+  <header><span class="sid">S02</span><h2>登录页 /login</h2>
+    <span class="meta">流程位置：入口页 · 公开（独立布局，无外壳）</span>
+    <span class="src">P-后端§3.1 / F-前端§1§6 / V-视觉§三.1</span></header>
+  <div class="cols">
+    <div class="wf">
+      <div class="browser"><div class="bar"><i></i><i></i><i></i><span>/login</span></div>
+        <div class="body">
+          <div class="row">
+            <div class="b fill" style="flex:0 0 42%;min-height:190px;">品牌面板（占位）<br><span class="mini">Logo 印章 + 应用名 FishCloud</span></div>
+            <div style="flex:1;">
+              <div class="b"><b>登录</b></div>
+              <div class="b">用户名 [____________]</div>
+              <div class="b">密码 [____________]</div>
+              <span class="btn pri">登 录</span>
+              <span class="btn">注册新账号 →</span>
+              <div class="b dash" style="margin-top:8px;">错误提示区（401：「用户名或密码错误」/「账号已停用」）</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="note">登录按钮置灰加载态（请求中防重复提交）。「注册新账号」入口为实现新增，PRD 路由表无 /register。<span class="tag q">待确认 Q2</span></p>
+    </div>
+    <div class="anno"><ul>
+      <li><b>流程位置</b>：产品唯一入口；受守卫保护页面的未登录落点。</li>
+      <li><b>可执行</b>：① 登录成功 → 签发 JWT → <span class="go">→ S01 外壳 → 上次目标页（默认 S05 概览）</span>；② 登录失败 401 → 停留本页+错误文案（成败均写审计 P-§3.1）；③ 点「注册新账号」→ <span class="go">→ S03 注册</span>。</li>
+      <li><b>后端语义</b>：POST /auth/login；停用账号同样 401（「账号已停用」）；last_login_at 更新。</li>
+      <li><b>状态变体</b>：见下方三格（首次使用见 S04）。</li>
+    </ul></div>
+  </div>
+  <div class="variants">
+    <div class="variant"><h4>状态 A：密码错误 / 账号不存在</h4><div class="b dash">提示「用户名或密码错误」（不泄露具体原因）</div><span class="note">审计记失败（user_id 空，username 记尝试值）</span></div>
+    <div class="variant"><h4>状态 B：账号已停用</h4><div class="b dash">提示「账号已停用」</div><span class="note">停用代替删除（P-§2.1）；管理员在 S22 恢复</span></div>
+    <div class="variant"><h4>状态 C：会话过期/无效 token</h4><div class="b dash">任意页请求返回 401 → http.ts 清 token → 自动跳回本页</div><span class="note">F-§4 统一处理；JWT 12h 有效（P-§6）</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════ S03 注册 ═══════════════ -->
+<div class="screen">
+  <header><span class="sid">S03</span><h2>注册页 /register【实现超出 PRD —— 归属待确认】</h2>
+    <span class="meta">流程位置：登录页旁路入口 · 公开</span>
+    <span class="src">实现新增（PRD 路由表无） · <span class="tag q">待确认 Q2</span></span></header>
+  <div class="cols">
+    <div class="wf">
+      <div class="browser"><div class="bar"><i></i><i></i><i></i><span>/register</span></div>
+        <div class="body">
+          <div class="b"><b>注册</b><br><span class="mini">自助注册是否开放由平台配置决定，提交后可能需要管理员启用</span></div>
+          <div class="b">用户名 * [________]</div>
+          <div class="b">显示名 [________]</div>
+          <div class="b">邮箱 [________]（选填）</div>
+          <div class="b">密码 * [________]（≥8 位）</div>
+          <div class="b">确认密码 * [________]</div>
+          <span class="btn pri">注 册</span>
+          <span class="btn">返回登录</span>
+        </div>
+      </div>
+    </div>
+    <div class="anno"><ul>
+      <li><b>流程位置</b>：S02 的旁路；仅当平台开启自助注册时可用。</li>
+      <li><b>可执行</b>：① 提交成功（pending 档）→ 提示「注册已提交，待管理员启用」→ <span class="go">→ S02（预填用户名）</span>；② 提交成功（自动启用档）→ 提示「注册成功，请登录」→ <span class="go">→ S02</span>；③ 注册关闭 → 403 文案「注册暂未开放，请联系管理员开通账号」；④ 用户名重复 → 409 文案。</li>
+      <li><b>角色语义</b>：注册成功的新账号固定 viewer 角色（P-§4.2 只读）。</li>
+      <li><b>已知问题（用户 2026-09-12 实测）</b>：填完全部字段提交后才收到 403。<span class="tag q">待确认 Q3</span>：开放开关 + 注册状态预检端点（registration-status），关闭时前端直接隐藏入口。</li>
+    </ul></div>
+  </div>
+  <div class="variants">
+    <div class="variant"><h4>状态 A：注册开放 · 需审批</h4><div class="b dash">「注册已提交，账号待管理员启用后即可登录」</div><span class="note">管理员在 S22 用户管理里启用 = 审批动作</span></div>
+    <div class="variant"><h4>状态 B：注册开放 · 自动启用</h4><div class="b dash">「注册成功，请使用新账号登录」</div></div>
+    <div class="variant"><h4>状态 C：注册关闭（默认）</h4><div class="b dash">403「注册暂未开放，请联系管理员开通账号」</div><span class="note">PRD 未定义注册流程；开关为实现新增配置</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════ S04 首次使用 + 改密 ═══════════════ -->
+<div class="screen">
+  <header><span class="sid">S04</span><h2>首次使用引导 + 修改密码（全局弹层）</h2>
+    <span class="meta">流程位置：部署后第一次登录 · 登录后的账户操作</span>
+    <span class="src">P-后端§2.6§3.1 · 细节 <span class="tag q">待确认 Q4 Q5</span></span></header>
+  <div class="cols">
+    <div class="wf">
+      <h3>① 首次使用（首启无任何用户时）</h3>
+      <div class="b dim">服务首次启动 → 自动建表 + 种子三角色 → 创建 admin 账号：<br>
+        a) 环境变量提供了 PLATFORM_ADMIN_PASSWORD → 用它；<br>
+        b) 未提供 → 随机密码生成，<b>仅打印一次到服务控制台日志</b>（绝不内置弱口令）。</div>
+      <div class="b dash">管理员从日志取得密码 → S02 登录 → （建议立即改密，见 ②）<br>
+        首屏数据全空 → 各列表页呈「空数据态」（见各屏变体）。</div>
+      <h3 style="margin-top:10px;">② 修改密码（登录即可，P-§3.1）</h3>
+      <div class="b dash">弹层：旧密码 [____] · 新密码 [____]（≥8）· 确认 [____]<br><span class="btn pri">确认修改</span>　<span class="btn">取消</span><br>
+        错误：旧密码错误 400。</div>
+      <p class="note">改密 UI 入口位置 PRD 未指定（实现放在账户菜单/设置）。<span class="tag q">待确认 Q4</span>；改密后旧 token 仍有效至过期（无状态 JWT 已知取舍，P-§3.1）。首次登录是否强制改密 PRD 未提。<span class="tag q">待确认 Q5</span></p>
+    </div>
+    <div class="anno"><ul>
+      <li><b>流程位置</b>：S04-① 是产品生命周期的第一步（无账号可登）；S04-② 是登录后任意时刻可用的账户操作。</li>
+      <li><b>可执行</b>：改密成功 → toast → 留在原页（继续用旧 token 直到过期）；失败 400 → 停留弹层。</li>
+      <li><b>首次使用空态联动</b>：S05 概览 KPI=0、S08/S11 列表空、S17 知识库空 → 各屏「无数据」变体。</li>
+    </ul></div>
+  </div>
+</div>
+
+<!-- ═══════════════ S05 运行概览 ═══════════════ -->
+<div class="screen">
+  <header><span class="sid">S05</span><h2>运行概览 /</h2>
+    <span class="meta">流程位置：登录后的默认落地页</span>
+    <span class="src">F-前端§1§2（重写：真实 KPI 无假数据） · 指标集 <span class="tag q">待确认 Q6</span></span></header>
+  <div class="cols">
+    <div class="wf">
+      <div class="browser"><div class="bar"><i></i><i></i><i></i><span>/</span></div>
+        <div class="body">
+          <div class="b"><b>运行概览</b><span class="mini">（crumb：FishCloud / 运行概览）</span></div>
+          <div class="row">
+            <div class="b">KPI：服务健康 <span class="mini">GET /health</span></div>
+            <div class="b">KPI：事件计数 <span class="mini">按状态</span></div>
+            <div class="b">KPI：资产计数 <span class="mini">按类型/环境</span></div>
+          </div>
+          <div class="row">
+            <div class="ph" style="min-height:80px;">趋势图占位（PRD 未指定 → 不实现或待确认）</div>
+            <div class="b dash" style="flex:1;">快捷入口：→ 事件中心 S11 · → 资产中心 S08</div>
+          </div>
+          <div class="b dim mini">禁止假数据：后端不可用即如实显示错误态（项目铁律）</div>
+        </div>
+      </div>
+    </div>
+    <div class="anno"><ul>
+      <li><b>流程位置</b>：登录成功默认页；全局态势感知。</li>
+      <li><b>可执行</b>：点 KPI → <span class="go">→ S11 事件列表（带对应状态过滤）/ S08 资产列表</span>；侧栏切换模块。</li>
+      <li><b>PRD 依据</b>：F-§2「Phase 1 先接 /health + 事件 KPI + 资产计数，无假数据」。</li>
+    </ul></div>
+  </div>
+  <div class="variants">
+    <div class="variant"><h4>加载中</h4><div class="b dash">KPI 骨架/占位，不发假数字</div></div>
+    <div class="variant"><h4>后端未就绪（503）</h4><div class="b dash">「服务尚未就绪」+ 原因（检索器/组件初始化失败）</div></div>
+    <div class="variant"><h4>无数据（首次使用）</h4><div class="b dash">KPI 全 0 + 空态文案「暂无事件/暂无资产」</div></div>
+  </div>
+</div>
+
+<!-- ═══════════════ S06 业务线 ═══════════════ -->
+<div class="screen">
+  <header><span class="sid">S06</span><h2>资源中心 · 业务线管理</h2>
+    <span class="meta">流程位置：CMDB 三层结构的顶层（业务线→环境→资产）</span>
+    <span class="src">P-后端§3.2 · 独立页面入口 <span class="tag q">待确认 Q7</span></span></header>
+  <div class="cols">
+    <div class="wf">
+      <div class="browser"><div class="bar"><i></i><i></i><i></i><span>/assets/business-lines（实现于 /assets 页内或子页）</span></div>
+        <div class="body">
+          <div class="b"><b>业务线</b> <span class="mini">共 N 条</span>　<span class="btn pri">＋新建业务线</span><span class="mini">（仅 admin 可见）</span></div>
+          <table class="wt"><tr><th>编码</th><th>名称</th><th>负责人</th><th>环境数</th><th>资产数</th><th>操作</th></tr>
+            <tr><td>BL-001</td><td>交易系统</td><td>张三</td><td>2</td><td>15</td><td><span class="btn">编辑</span><span class="btn">删除</span></td></tr>
+            <tr><td>…</td><td>…</td><td>…</td><td>…</td><td>…</td><td>…</td></tr></table>
+          <div class="b dash">新建/编辑弹层：编码* [__] 名称* [__] 负责人 [下拉 S22 用户] 描述 [__] <span class="btn pri">保存</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="anno"><ul>
+      <li><b>流程位置</b>：登记资产前必须先建业务线与环境（层级依赖）。</li>
+      <li><b>可执行</b>：① 新建/编辑（admin）→ 201 回列表刷新；409 冲突（code/name 唯一）；② 删除（admin）→ 存在下级环境/资产时 409，<b>错误信息列出依赖</b> → 引导先删下级；③ 非.admin 点写操作 → 403 toast。</li>
+      <li><b>去向</b>：保存成功 → <span class="go">回到本列表</span>；进入某环境管理 → <span class="go">→ S07</span>。</li>
+    </ul></div>
+  </div>
+  <div class="variants">
+    <div class="variant"><h4>409 唯一冲突</h4><div class="b dash">「编码已存在」/「名称已存在」</div></div>
+    <div class="variant"><h4>409 删除受限</h4><div class="b dash">「存在 2 个环境、15 个资产，无法删除」（列出依赖）</div></div>
+    <div class="variant"><h4>403</h4><div class="b dash">operator/viewer：写按钮不显示；直连请求 403 toast</div></div>
+  </div>
+</div>
+
+<!-- ═══════════════ S07 环境 ═══════════════ -->
+<div class="screen">
+  <header><span class="sid">S07</span><h2>资源中心 · 环境管理</h2>
+    <span class="meta">流程位置：CMDB 中层（挂在某业务线下）</span>
+    <span class="src">P-后端§3.2</span></header>
+  <div class="cols">
+    <div class="wf">
+      <div class="browser"><div class="bar"><i></i><i></i><i></i><span>/assets/environments</span></div>
+        <div class="body">
+          <div class="b"><b>环境</b> <span class="mini">业务线：交易系统 ▾</span>　<span class="btn pri">＋新建环境</span><span class="mini">（admin）</span></div>
+          <table class="wt"><tr><th>名称</th><th>所属业务线</th><th>资产数</th><th>操作</th></tr>
+            <tr><td>生产</td><td>交易系统</td><td>9</td><td><span class="btn">编辑</span><span class="btn">删除</span></td></tr></table>
+          <div class="b dash">新建/编辑弹层：所属业务线* [下拉] 名称* [__] 描述 [__]（同业务线下名称唯一）</div>
+        </div>
+      </div>
+    </div>
+    <div class="anno"><ul>
+      <li><b>可执行</b>：同 S06 权限与 409 语义；删除校验资产引用（有关联资产 → 409）。</li>
+      <li><b>去向</b>：建好后 → <span class="go">S08 资产登记的环境下拉即可选</span>。</li>
+    </ul></div>
+  </div>
+</div>
+
+<!-- ═══════════════ S08 资产列表 ═══════════════ -->
+<div class="screen">
+  <header><span class="sid">S08</span><h2>资源中心 · 资产列表 /assets</h2>
+    <span class="meta">流程位置：CMDB 叶层 · 事件关联的对象</span>
+    <span class="src">P-后端§3.2 / V-视觉§三.2 / F-前端§2</span></header>
+  <div class="cols">
+    <div class="wf">
+      <div class="browser"><div class="bar"><i></i><i></i><i></i><span>/assets</span></div>
+        <div class="body">
+          <div class="b"><b>资产列表</b> <span class="mini">共 N 台</span>　<span class="btn pri">＋登记资产</span><span class="mini">（operator+/admin）</span><span class="btn dis">导出</span><span class="mini">（V-§三.2 提及，PRD 无导出端点 <span class="tag q">待确认 Q8</span>）</span></div>
+          <div class="b dim">筛选栏：业务线 ▾ ｜ 环境 ▾ ｜ 类型 ▾(host/db/middleware/app/network) ｜ 状态 ▾(active/maintenance/decommissioned) ｜ 关键字 [名称/标识]　<span class="btn">查询</span></div>
+          <table class="wt"><tr><th>名称</th><th>类型</th><th>标识</th><th>环境</th><th>负责人</th><th>状态</th><th>操作</th></tr>
+            <tr><td><b>order-api-01</b><br><span class="mini mono">10.0.1.11</span></td><td>app</td><td>10.0.1.11</td><td>生产</td><td>李四</td><td>active</td><td><span class="btn">详情</span></td></tr>
+            <tr><td>…</td><td>…</td><td>…</td><td>…</td><td>…</td><td>…</td><td>…</td></tr></table>
+          <div class="b dim">分页：‹ 1 2 3 › ｜每页 20</div>
+        </div>
+      </div>
+    </div>
+    <div class="anno"><ul>
+      <li><b>流程位置</b>：事件/webhook 通过「环境+类型+标识」三元组关联到这里的资产。</li>
+      <li><b>可执行</b>：① 筛选/翻页（viewer 即可）；② 点「详情」→ <span class="go">→ S10</span>；③ 点「＋登记资产」→ <span class="go">→ S09 表单</span>（viewer 无此按钮）。</li>
+    </ul></div>
+  </div>
+  <div class="variants">
+    <div class="variant"><h4>无数据（首次使用）</h4><div class="b dash">「暂无资产」+ 引导：先建业务线/环境（S06/S07）再登记</div></div>
+    <div class="variant"><h4>加载中</h4><div class="b dash">表格骨架行</div></div>
+    <div class="variant"><h4>查询无结果</h4><div class="b dash">「无匹配资产」+ 清除筛选按钮</div></div>
+  </div>
+</div>
+
+<!-- ═══════════════ S09 资产表单 ═══════════════ -->
+<div class="screen">
+  <header><span class="sid">S09</span><h2>资产登记 / 编辑（弹层）</h2>
+    <span class="meta">流程位置：S08 的写操作</span>
+    <span class="src">P-后端§3.2§2.3</span></header>
+  <div class="cols">
+    <div class="wf">
+      <div class="b dash" style="max-width:460px;">
+        <b>登记资产</b><br><br>
+        所属环境 * [下拉：业务线→环境 级联]<br>
+        名称 * [__________]<br>
+        类型 * [host / db / middleware / app / network]<br>
+        标识 * [__________] <span class="mini">IP/主机名/实例号</span><br>
+        负责人 [下拉用户] · 联系方式 [____]<br>
+        状态 [active / maintenance / decommissioned]<br>
+        标签 [____] · 备注 [____]<br>
+        <span class="btn pri">保存</span>　<span class="btn">取消</span><br>
+        <span class="b dash" style="margin-top:6px;">错误区：409「同环境下 类型+标识 重复」/ 必填校验</span>
+      </div>
+    </div>
+    <div class="anno"><ul>
+      <li><b>可执行</b>：保存成功 → <span class="go">关弹层 → S08 列表出现新行</span>；409 三元组冲突（environment_id+asset_type+identifier 唯一，P-§2.3）→ 停留弹层显示冲突；编辑同表单预填。</li>
+      <li><b>权限</b>：operator+；viewer 不可见入口。</li>
+    </ul></div>
+  </div>
+</div>
+
+<!-- ═══════════════ S10 资产详情 ═══════════════ -->
+<div class="screen">
+  <header><span class="sid">S10</span><h2>资产详情 /assets/:id</h2>
+    <span class="meta">流程位置：S08 行点击进入 · 隐藏菜单页</span>
+    <span class="src">V-视觉§三.3 / F-前端§2 / P-后端§3.2</span></header>
+  <div class="cols">
+    <div class="wf">
+      <div class="browser"><div class="bar"><i></i><i></i><i></i><span>/assets/15</span></div>
+        <div class="body">
+          <div class="row">
+            <div class="b" style="flex:0 0 34%;"><b>概览卡（sticky）</b><br>类型徽章 / 名称 / 标识<br>规格行 · 标签 · 负责人 · 联系方式<br>状态 · 环境归属<br><span class="btn">编辑</span><span class="mini">(operator+)</span> <span class="btn">删除</span><span class="mini">(admin)</span></div>
+            <div style="flex:1;">
+              <div class="b dim"><b>关联事件</b> <span class="mini">该资产的事件（点击 → S13）</span>
+                <table class="wt"><tr><th>事件号</th><th>标题</th><th>状态</th></tr><tr><td>EV-…-0001</td><td>CPU 过高</td><td>closed</td></tr></table></div>
+              <div class="b dim"><b>变更历史</b> <span class="mini">Phase 1 用审计日志按 resource_id 回填（只读）</span>
+                <div class="b dash">时间线条目占位 ×N</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="anno"><ul>
+      <li><b>可执行</b>：编辑 → <span class="go">→ S09（预填）</span>；删除（admin）→ 有关联事件 409「建议先置为 decommissioned」→ <span class="go">改走 S09 编辑改状态</span>；点关联事件 → <span class="go">→ S13</span>。</li>
+      <li><b>注意</b>：AssetOut 出参无 ownerId（实现偏差），负责人回填受限。<span class="tag q">待确认 Q9</span></li>
+    </ul></div>
+  </div>
+</div>
+
+<!-- ═══════════════ S11 事件列表 ═══════════════ -->
+<div class="screen">
+  <header><span class="sid">S11</span><h2>事件中心 · 事件列表 /events</h2>
+    <span class="meta">流程位置：告警的消费主界面</span>
+    <span class="src">P-后端§3.3 / V-视觉§三.4 / F-前端§2</span></header>
+  <div class="cols">
+    <div class="wf">
+      <div class="browser"><div class="bar"><i></i><i></i><i></i><span>/events</span></div>
+        <div class="body">
+          <div class="row">
+            <div class="b">KPI：open (n)</div><div class="b">KPI：acknowledged (n)</div>
+            <div class="b">KPI：diagnosing (n)</div><div class="b">KPI：resolved/closed (n)</div>
+          </div>
+          <div class="b dim">状态 Tab：全部 ｜ open ｜ acknowledged ｜ diagnosing ｜ resolved ｜ closed（各带计数徽章）</div>
+          <div class="b dim">过滤：严重度 ▾ ｜ 资产 ▾ ｜ 业务线 ▾ ｜ 来源 ▾ ｜ 时间区间 [起—止] ｜ 关键字 [标题/编号]　<span class="btn">查询</span>　<span class="btn">告警规则 →</span></div>
+          <table class="wt"><tr><th>严重度</th><th>编号</th><th>标题</th><th>资产</th><th>状态</th><th>认领人</th><th>发生时间</th></tr>
+            <tr><td><b>P1</b> critical</td><td>EV-20260912-0001</td><td>CPU 使用率持续过高</td><td>order-api-01</td><td>open</td><td>—</td><td>09-12 20:01</td></tr>
+            <tr><td>…</td><td>…</td><td>…</td><td>…</td><td>…</td><td>…</td><td>…</td></tr></table>
+          <div class="b dim">分页 ‹ 1 2 ›　<span class="btn pri">＋手工登记</span><span class="mini">(operator+)</span></div>
+        </div>
+      </div>
+      <p class="note">「告警规则 →」入口 = AlertsView 删除后规则管理的两个去处之一（另一个在 S24）。严重度 P1..P4 ↔ critical/major/minor/info。</p>
+    </div>
+    <div class="anno"><ul>
+      <li><b>流程位置</b>：webhook/手工登记产生的事件全部汇聚于此；处置工作的起点。</li>
+      <li><b>可执行</b>：① 切 Tab/过滤/翻页；② 点行 → <span class="go">→ S13 事件详情</span>；③ 手工登记 → <span class="go">→ S12</span>；④ 告警规则 → <span class="go">→ S24</span>。</li>
+      <li><b>来源标记</b>：source = webhook:zabbix / manual（列表可见）。</li>
+    </ul></div>
+  </div>
+  <div class="variants">
+    <div class="variant"><h4>无数据（首次使用）</h4><div class="b dash">「暂无事件」；webhook 未接入时可提示接入方式（S16）</div></div>
+    <div class="variant"><h4>加载中</h4><div class="b dash">表格骨架 + KPI 占位</div></div>
+    <div class="variant"><h4>KPI 请求失败</h4><div class="b dash">计数显示「—」而非 0（避免误读为没有事件）</div></div>
+  </div>
+</div>
+
+<!-- ═══════════════ S12 手工登记 ═══════════════ -->
+<div class="screen">
+  <header><span class="sid">S12</span><h2>手工登记事件（弹层）</h2>
+    <span class="meta">流程位置：S11 的写操作（source=manual）</span>
+    <span class="src">P-后端§3.3（POST /events operator+）</span></header>
+  <div class="cols">
+    <div class="wf">
+      <div class="b dash" style="max-width:440px;">
+        <b>手工登记事件</b><br><br>
+        标题 * [________________]<br>
+        严重度 * [critical/major/minor/info]<br>
+        关联资产 [下拉：可空] <span class="mini">可无资产登记</span><br>
+        附加信息 payload [JSON 文本域，选填]<br>
+        <span class="btn pri">登记</span>　<span class="btn">取消</span>
+      </div>
+    </div>
+    <div class="anno"><ul>
+      <li><b>可执行</b>：登记成功 → 201 → <span class="go">→ S13 新事件详情（status=open，时间线写入 created 条目）</span>；校验失败 → 停留弹层。</li>
+      <li><b>权限</b>：operator+（viewer 403）。</li>
+    </ul></div>
+  </div>
+</div>
+
+<!-- ═══════════════ S13 事件详情 ═══════════════ -->
+<div class="screen">
+  <header><span class="sid">S13</span><h2>事件详情 /events/:id</h2>
+    <span class="meta">流程位置：单事件的处置与复盘现场（核心屏）</span>
+    <span class="src">P-后端§3.3§5 / V-视觉§三.5 / F-前端§2</span></header>
+  <div class="cols">
+    <div class="wf">
+      <div class="browser"><div class="bar"><i></i><i></i><i></i><span>/events/1</span></div>
+        <div class="body">
+          <div class="row">
+            <div class="b" style="flex:0 0 38%;"><b>信息卡</b>
+              编号 EV-20260912-0001<br>标题 · 来源(webhook:zabbix/manual)<br>严重度 P1 · 状态徽章 <b>open</b><br>关联资产 → S10 · 负载人 —<br>payload 原文（JSON 折叠）<br><br>
+              <b>处置按钮（按状态机显隐）</b><br>
+              <span class="btn">认领</span> <span class="btn">触发 AI 研判</span><br>
+              <span class="btn">恢复 resolve</span> <span class="btn">关闭</span><br>
+              <span class="mini">状态禁用规则见 S15 状态机；P1 未恢复时「关闭」禁用（V-§三.5）</span></div>
+            <div style="flex:1;">
+              <div class="b dim"><b>AI 研判面板</b>（S14 嵌入于此）<div class="b dash">研判结论/证据占位</div></div>
+              <div class="b dim"><b>复盘时间线（升序，只追加）</b>
+                <div class="b dash">created ｜ rule_matched ｜ status_change ｜ diagnosis_started ｜ diagnosis_finished ｜ comment（各条目：类型徽标+操作者+时间+内容）</div>
+                <div class="b">评论输入 [____________] <span class="btn">追加评论</span><span class="mini"> operator+；viewer 只读（输入禁用）</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="anno"><ul>
+      <li><b>可执行（按钮 × 状态 × 结果）</b>：
+        ① 认领：open→acknowledged → 按钮区刷新，时间线+审计各记一条；
+        ② 触发研判：→ 202 → <span class="go">S14 running</span>；
+        ③ 恢复：需填 resolution_note → acknowledged/diagnosing→resolved；
+        ④ 关闭：resolved→closed（终态）；
+        ⑤ 非法流转/重复操作 → <b>409</b> toast，状态不变。</li>
+      <li><b>铁律</b>：resolved 永远人工触发，AI 不自动处置（P-§5.3）。</li>
+      <li><b>权限</b>：查看 viewer+；全部写按钮 operator+。</li>
+    </ul></div>
+  </div>
+  <div class="variants">
+    <div class="variant"><h4>403 viewer</h4><div class="b dash">写按钮全部不渲染，只读浏览 + 评论禁用</div></div>
+    <div class="variant"><h4>409 已是终态</h4><div class="b dash">closed 事件无任何操作按钮；再调接口 409</div></div>
+    <div class="variant"><h4>详情加载失败</h4><div class="b dash">404「事件不存在」/ 网络错误 toast + 重试</div></div>
+  </div>
+</div>
+
+<!-- ═══════════════ S14 研判面板 ═══════════════ -->
+<div class="screen">
+  <header><span class="sid">S14</span><h2>AI 研判面板（DiagnosisPanel，嵌入 S13）</h2>
+    <span class="meta">流程位置：事件处置的 AI 环节 · 触发后轮询直至收敛</span>
+    <span class="src">P-后端§5.1–5.4 / F-前端§2</span></header>
+  <div class="cols">
+    <div class="wf">
+      <div class="b">
+        <b>AI 研判</b>　<span class="btn">触发研判</span><span class="mini">(operator+)</span>
+        <span class="mini">POST /events/{id}/diagnose → 202 {diagnosis_id}</span>
+      </div>
+      <div class="b dim"><b>running（轮询 GET /diagnoses/{id}，默认推荐方式）</b><br>
+        <div class="ph">节点事件占位：decompose → retrieve → reflect → generate → hallucination<br>（SSE 观察为增强，PRD 计划提供；实现以轮询为主 <span class="tag q">待确认 Q10</span>）</div>
+        <span class="mini">研判结果一定落库，与是否有观察者无关（P-§5.4）</span></div>
+      <div class="b"><b>completed（成功）</b><br>
+        根因：<span class="mini">文本（含 [E1][E2] 引用标记）</span><br>
+        建议：<span class="mini">可执行处置步骤</span><br>
+        置信度：<b>0.8</b>（≤0.9，有知识证据时被钳制）<br>
+        证据列表：[E1] asset:order-api-01 ｜ [E2] knowledge:pump-sop.md#chunk3<br>
+        <span class="mini">E 序号与 evidence.seq 一一对应（P-§5.2）</span></div>
+      <div class="b dash"><b>degraded（降级完成）</b>：降级原因徽标<br>
+        insufficient_evidence（仅资产证据 → 置信度≤0.5）｜ unparsed（输出解析失败→原文兜底展示）</div>
+      <div class="b dash"><b>failed / timeout</b>：错误信息 + 「重新研判」按钮；timeout 时事件自动回退 acknowledged</div>
+    </div>
+    <div class="anno"><ul>
+      <li><b>可执行</b>：触发 → 202 → 面板进入 running → 轮询收敛；失败/超时后可再次触发（新建一条 diagnosis_records）。</li>
+      <li><b>置信度三规则（P-§5.2）</b>：有 knowledge 证据 → clamp ≤0.9；仅 asset 证据 → ≤0.5 + insufficient_evidence；模型未给 → 显示「未知」，<b>不得臆造</b>。</li>
+      <li><b>闭环语义</b>：AI 只出根因/建议/证据 → 人工确认后回 S13 点「恢复」（P-§5.3）。</li>
+    </ul></div>
+  </div>
+  <div class="variants">
+    <div class="variant"><h4>LLM 不可用</h4><div class="b dash">202 受理后立即 failed（llm_unavailable），按钮不抛 500</div></div>
+    <div class="variant"><h4>超时（>120s 可配）</h4><div class="b dash">status=timeout；部分证据照常落库；事件回退 acknowledged + 时间线「研判超时，已回退」</div></div>
+    <div class="variant"><h4>无证据</h4><div class="b dash">证据区空 → 「无证据（平台约束：无证据不出根因）」</div></div>
+  </div>
+</div>
+
+<!-- ═══════════════ S15 状态机 ═══════════════ -->
+<div class="screen">
+  <header><span class="sid">S15</span><h2>事件状态机（参考卡，非独立页面）</h2>
+    <span class="meta">流程位置：S13 按钮显隐与 409 的唯一依据</span>
+    <span class="src">P-后端§3.3</span></header>
+  <div class="cols">
+    <div class="wf">
+      <table class="wt">
+        <tr><th>当前状态</th><th>允许流转</th><th>触发按钮</th></tr>
+        <tr><td>open</td><td>acknowledged ｜ closed</td><td>认领 / 关闭</td></tr>
+        <tr><td>acknowledged</td><td>diagnosing ｜ resolved ｜ closed</td><td>研判中自动 / 恢复 / 关闭</td></tr>
+        <tr><td>diagnosing</td><td>acknowledged ｜ resolved ｜ closed</td><td>超时回退 / 恢复 / 关闭</td></tr>
+        <tr><td>resolved</td><td>closed</td><td>关闭</td></tr>
+        <tr><td>closed</td><td>（终态，无出口）</td><td>—（再操作 409）</td></tr>
+      </table>
+      <div class="b dim mini">每次合法流转：时间线 status_change（记录 from/to/操作者）+ 审计 event.transition（同事务）。</div>
+    </div>
+    <div class="anno"><ul>
+      <li><b>注意</b>：实现中无端点将事件置为 diagnosing（自动研判后事件停留在 acknowledged）——PRD §5.1 期望与状态矩阵互相矛盾。<span class="tag q">待确认 Q11</span></li>
+    </ul></div>
+  </div>
+</div>
+
+<!-- ═══════════════ S16 Webhook ═══════════════ -->
+<div class="screen">
+  <header><span class="sid">S16</span><h2>告警接入（webhook · 系统交互卡，无 UI 屏）</h2>
+    <span class="meta">流程位置：事件的机器来源（Zabbix/Grafana 等外部系统）</span>
+    <span class="src">P-后端§3.3§5.1</span></header>
+  <div class="cols">
+    <div class="wf">
+      <div class="b dim"><b>外部告警系统</b> ──X-Webhook-Token──▶ <b>POST /api/v1/events/webhook/{source}</b></div>
+      <div class="b">处理链：校验 token（401 无效）→ 规则匹配（S24 的规则）→ 命中：severity 取规则值 + timeline(rule_matched)；未命中：默认 severity → 建事件(open) + timeline(created/webhook) → 命中规则且 auto_diagnose=true 且总开关开 → 自动入队研判</div>
+      <div class="b">响应 202：{event_id, event_no, matched_rules, auto_diagnosis_queued}；写审计（actor=system，<b>未命中规则也留痕</b>）</div>
+      <div class="b dim mini">token 配置：settings.WEBHOOK_TOKENS =「zabbix:token1,grafana:token2」</div>
+    </div>
+    <div class="anno"><ul>
+      <li><b>去向</b>：机器建的事件 → <span class="go">S11 列表立即可见 → S13 处置</span>；auto_diagnose → <span class="go">S14 自动 running</span>。</li>
+      <li><b>失败语义</b>：token 缺失/错误 → 401（外部系统侧重试）。</li>
+    </ul></div>
+  </div>
+</div>
+
+<!-- ═══════════════ S17–S21 AIOps ═══════════════ -->
+<div class="screen">
+  <header><span class="sid">S17</span><h2>AIOps · 智能问答 /aiops/chat</h2>
+    <span class="meta">流程位置：AIOps 分组（迁移保留视图）</span>
+    <span class="src">F-前端§1§5§6 · 内部布局 <span class="tag q">待确认 Q12</span></span></header>
+  <div class="cols">
+    <div class="wf">
+      <div class="browser"><div class="bar"><i></i><i></i><i></i><span>/aiops/chat</span></div>
+        <div class="body">
+          <div class="b dim" style="min-height:110px;">对话记录区（气泡流）</div>
+          <div class="b">输入框 [____________________] <span class="btn pri">发送</span></div>
+          <div class="b dash">流式过程：意图拆解 → 检索 → 充分性反思 → 生成 → 幻觉校验 → done/error（SSE 节点事件）</div>
+          <div class="b dash">回答附引用标记（chunk_id）+ 模式标注（直连/后端）</div>
+        </div>
+      </div>
+      <p class="note">PRD §6：live 模式请求需附 Authorization；401 清 token 跳 S02。铁律：后端不可用 → 明确报错，<b>绝不本地伪造答案</b>（demo 降级流已按用户要求删除）。</p>
+    </div>
+    <div class="anno"><ul>
+      <li><b>可执行</b>：提问 → 流式回答/错误提示；停止；新会话。</li>
+      <li><b>状态</b>：后端未就绪 503 → 明确错误；模型未配置 → 明确提示（不伪造）。</li>
+    </ul></div>
+  </div>
+</div>
+
+<div class="screen">
+  <header><span class="sid">S18</span><h2>AIOps · 知识库管理 /aiops/knowledge</h2>
+    <span class="meta">流程位置：研判「knowledge 证据」的来源</span>
+    <span class="src">P-后端§0（现有 upload 端点不动） · <span class="tag q">待确认 Q12</span></span></header>
+  <div class="cols">
+    <div class="wf">
+      <div class="browser"><div class="bar"><i></i><i></i><i></i><span>/aiops/knowledge</span></div>
+        <div class="body">
+          <div class="b"><b>知识文档</b>　<span class="btn pri">上传文档</span>（多选，拖拽占位）</div>
+          <div class="b dash">上传进度条：queued → 解析/分块/实体抽取 → 完成；失败 → 错误原因（LLM 抽取失败等）</div>
+          <table class="wt"><tr><th>文件名</th><th>分块数</th><th>状态</th><th>操作</th></tr>
+            <tr><td>pump-sop.md</td><td>12</td><td>已索引</td><td><span class="btn">删除</span></td></tr></table>
+        </div>
+      </div>
+      <p class="note">上传为异步摄取（202 queued）；研判证据引用此处的 chunk_id（S14 [E n]）。</p>
+    </div>
+    <div class="anno"><ul>
+      <li><b>可执行</b>：上传 → 进度可见 → 完成后可被 S19 检索、被 S14 引用；删除文档。</li>
+    </ul></div>
+  </div>
+</div>
+
+<div class="screen">
+  <header><span class="sid">S19</span><h2>AIOps · 检索调参 /aiops/retrieval</h2>
+    <span class="meta">流程位置：AIOps 分组（迁移保留）</span>
+    <span class="src">F-前端§1 · <span class="tag q">待确认 Q12</span></span></header>
+  <div class="cols">
+    <div class="wf">
+      <div class="browser"><div class="bar"><i></i><i></i><i></i><span>/aiops/retrieval</span></div>
+        <div class="body">
+          <div class="b">查询 [________________] ｜ top_k [__] ｜ <span class="btn pri">检索</span></div>
+          <div class="b dim">命中列表：文件名 / 分段号 / 相关度 / 片段摘要（真实数据）</div>
+          <div class="b dash">503：检索器未就绪（组件初始化失败）提示</div>
+        </div>
+      </div>
+    </div>
+    <div class="anno"><ul>
+      <li><b>可执行</b>：检索 → 展示真实命中；空库 → 空态。</li>
+    </ul></div>
+  </div>
+</div>
+
+<div class="screen">
+  <header><span class="sid">S20</span><h2>AIOps · 评估 /aiops/eval</h2>
+    <span class="meta">流程位置：AIOps 分组（迁移保留）</span>
+    <span class="src">F-前端§1 · <span class="tag q">待确认 Q12</span></span></header>
+  <div class="cols">
+    <div class="wf">
+      <div class="browser"><div class="bar"><i></i><i></i><i></i><span>/aiops/eval</span></div>
+        <div class="body">
+          <div class="b"><span class="btn pri">触发评估</span> <span class="mini">POST /evaluate → 202 后台任务</span></div>
+          <div class="b dash">运行中：进度占位（轮询 GET /evaluate/results）</div>
+          <div class="b dim">结果：faithfulness / answer_relevancy / context_recall / context_precision 等指标（通用渲染）</div>
+          <div class="b dash">失败：任务错误原因展示 + 重新触发</div>
+        </div>
+      </div>
+    </div>
+    <div class="anno"><ul>
+      <li><b>可执行</b>：触发 → 轮询 → 查看结果/失败原因。</li>
+    </ul></div>
+  </div>
+</div>
+
+<div class="screen">
+  <header><span class="sid">S21</span><h2>AIOps · Agent 链路 /aiops/agent</h2>
+    <span class="meta">流程位置：AIOps 分组（迁移保留；TraceView 已删，能力并入 S13 时间线）</span>
+    <span class="src">F-前端§1§5 · <span class="tag q">待确认 Q12</span></span></header>
+  <div class="cols">
+    <div class="wf">
+      <div class="browser"><div class="bar"><i></i><i></i><i></i><span>/aiops/agent</span></div>
+        <div class="body">
+          <div class="b">trace_id [____________] <span class="btn pri">查询</span></div>
+          <div class="b dim">链路明细：问题 / 答案 / 引用 / 迭代次数 / 各节点耗时 / 错误</div>
+          <div class="b dash">无此 trace → 「查不到（链路存于内存，重启即失）」</div>
+        </div>
+      </div>
+    </div>
+    <div class="anno"><ul>
+      <li><b>可执行</b>：按 trace_id 查询（研判记录 trace_id 可从 S14 关联）。</li>
+    </ul></div>
+  </div>
+</div>
+
+<!-- ═══════════════ S22–S26 系统管理 ═══════════════ -->
+<div class="screen">
+  <header><span class="sid">S22</span><h2>系统管理 · 用户管理（admin 专属）</h2>
+    <span class="meta">流程位置：RBAC 的账号供给端 · 注册审批的执行地</span>
+    <span class="src">P-后端§3.4 / V-视觉§三.6</span></header>
+  <div class="cols">
+    <div class="wf">
+      <div class="browser"><div class="bar"><i></i><i></i><i></i><span>/admin?tab=users（仅 admin 菜单可见）</span></div>
+        <div class="body">
+          <div class="b dim">Tab：用户 ｜ 角色 ｜ 告警规则 ｜ 审计日志 ｜ 系统健康 <span class="mini">（PRD 三 Tab；实现五 Tab <span class="tag q">待确认 Q13</span>）</span></div>
+          <table class="wt"><tr><th>用户名</th><th>显示名</th><th>角色</th><th>状态</th><th>最近登录</th><th>操作</th></tr>
+            <tr><td>admin</td><td>管理员</td><td>admin</td><td>启用</td><td>09-12 20:01</td><td><span class="btn">编辑</span><span class="btn">重置密码</span></td></tr>
+            <tr><td>333</td><td>333</td><td>viewer</td><td><b>停用（待审批）</b></td><td>—</td><td><span class="btn">启用</span><span class="btn">编辑</span></td></tr></table>
+          <div class="b dash">新建用户弹层：用户名* · 密码*（必填）· 显示名 · 角色[admin/operator/viewer 下拉 ← S23]</div>
+          <div class="b dash">编辑弹层：角色 / 状态(启用停用) / 显示名</div>
+          <div class="b dash">重置密码结果：一次性新密码展示框（仅此一次可见，复制后关闭）</div>
+        </div>
+      </div>
+    </div>
+    <div class="anno"><ul>
+      <li><b>可执行</b>：① 新建 → 201 → 列表刷新；② 编辑角色/状态 → 停用即时生效（每请求回库校验 P-§4.1）；③ 重置密码 → 响应返回一次性密码 → 管理员线下转交；④ 启用注册待审批账号 = S03 状态 A 的审批动作。</li>
+      <li><b>自我保护（400）</b>：禁止停用自己 / 禁止停用最后一个 admin。</li>
+      <li><b>停用语义</b>：代替删除（保审计引用完整）；被停用者下次请求 401 → S02 状态 B。</li>
+    </ul></div>
+  </div>
+</div>
+
+<div class="screen">
+  <header><span class="sid">S23</span><h2>系统管理 · 角色（只读）</h2>
+    <span class="meta">流程位置：S09/S22 角色下拉的数据源</span>
+    <span class="src">P-后端§3.4（GET /admin/roles 登录即可）</span></header>
+  <div class="cols">
+    <div class="wf">
+      <div class="browser"><div class="bar"><i></i><i></i><i></i><span>/admin?tab=roles</span></div>
+        <div class="body">
+          <table class="wt"><tr><th>角色码</th><th>显示名</th><th>说明</th></tr>
+            <tr><td>admin</td><td>管理员</td><td>全部权限</td></tr>
+            <tr><td>operator</td><td>运维工程师</td><td>资产/事件读写与研判</td></tr>
+            <tr><td>viewer</td><td>只读观察员</td><td>只读</td></tr></table>
+          <div class="b dim mini">能力判定不看本表（表只存显示名），看代码常量 ROLE_MATRIX（S01）。</div>
+        </div>
+      </div>
+    </div>
+    <div class="anno"><ul>
+      <li><b>可执行</b>：仅查看（Phase 1 无角色编辑；权限矩阵固化在代码）。</li>
+    </ul></div>
+  </div>
+</div>
+
+<div class="screen">
+  <header><span class="sid">S24</span><h2>系统管理 · 告警规则管理</h2>
+    <span class="meta">流程位置：webhook 告警 → 事件的匹配大脑</span>
+    <span class="src">P-后端§3.4§2.4</span></header>
+  <div class="cols">
+    <div class="wf">
+      <div class="browser"><div class="bar"><i></i><i></i><i></i><span>/admin?tab=rules（入口另见 S11 头部）</span></div>
+        <div class="body">
+          <div class="b"><span class="btn pri">＋新建规则</span><span class="mini">(admin)</span></div>
+          <table class="wt"><tr><th>名称</th><th>匹配</th><th>严重度</th><th>自动研判</th><th>启用</th><th>操作</th></tr>
+            <tr><td>CPU 过高</td><td>title contains CPU</td><td>critical</td><td>✓</td><td>开</td><td><span class="btn">编辑</span><span class="btn">删除</span></td></tr></table>
+          <div class="b dash">新建/编辑弹层：名称* ｜ match_field[title/source/payload_key:*/asset.identifier] ｜ match_op[contains/eq/regex] ｜ match_value* ｜ severity ｜ auto_diagnose ☑ ｜ enabled ☑</div>
+        </div>
+      </div>
+      <p class="note">写后规则缓存失效（P-§3.4）；enabled=false 不参与匹配（S16）。</p>
+    </div>
+    <div class="anno"><ul>
+      <li><b>可执行</b>：CRUD → 保存后立即作用于下一个 webhook 告警 → <span class="go">效果在 S11/S13/S14 观察</span>。</li>
+      <li><b>权限</b>：GET viewer+ / 写 admin。</li>
+    </ul></div>
+  </div>
+</div>
+
+<div class="screen">
+  <header><span class="sid">S25</span><h2>系统管理 · 审计日志</h2>
+    <span class="meta">流程位置：全平台操作留痕的查询端（只读）</span>
+    <span class="src">P-后端§3.4§4.3</span></header>
+  <div class="cols">
+    <div class="wf">
+      <div class="browser"><div class="bar"><i></i><i></i><i></i><span>/admin?tab=audit（admin）</span></div>
+        <div class="body">
+          <div class="b dim">过滤：action ▾ ｜ username [__] ｜ resource_type ▾ ｜ 时间区间 [起—止]　<span class="btn">查询</span></div>
+          <table class="wt"><tr><th>时间</th><th>用户</th><th>动作</th><th>对象</th><th>IP</th><th>详情</th></tr>
+            <tr><td class="mini">09-12 20:01:03</td><td>admin</td><td>user.login</td><td>user:1</td><td class="mini">127.0.0.1</td><td class="mini">{"result":"success"}</td></tr>
+            <tr><td class="mini">…</td><td>—(系统)</td><td>event.webhook</td><td>event:5</td><td class="mini">—</td><td class="mini">{"matched":1}</td></tr></table>
+          <div class="b dim">分页</div>
+        </div>
+      </div>
+      <p class="note">审计与业务同事务写入（P-§4.3）：登录成败/状态流转/研判触发/CMDB 写操作全覆盖；username 冗余快照保证用户停用后仍可读。</p>
+    </div>
+    <div class="anno"><ul>
+      <li><b>可执行</b>：过滤查询/翻页（只读，无任何写操作）。</li>
+      <li><b>联动</b>：S10 资产变更历史即按 resource_type=asset 回填本表。</li>
+    </ul></div>
+  </div>
+</div>
+
+<div class="screen">
+  <header><span class="sid">S26</span><h2>系统管理 · 系统健康</h2>
+    <span class="meta">流程位置：运维自检（admin）</span>
+    <span class="src">P-后端§3.4</span></header>
+  <div class="cols">
+    <div class="wf">
+      <div class="browser"><div class="bar"><i></i><i></i><i></i><span>/admin?tab=health</span></div>
+        <div class="body">
+          <div class="b">数据库连通：<b>MySQL fish</b> ✓（失败时显示 SQLite 兜底状态）</div>
+          <div class="b">表行数：users 3 ｜ events 8 ｜ audit_logs 22 …</div>
+          <div class="b">平台版本 / 检索器就绪状态（ready=false 时提示 503 边界）</div>
+        </div>
+      </div>
+    </div>
+    <div class="anno"><ul>
+      <li><b>可执行</b>：查看（只读）；作为 503/故障排查的第一入口。</li>
+    </ul></div>
+  </div>
+</div>
+
+<!-- ═══════════════ S27 设置 / S28 占位 ═══════════════ -->
+<div class="screen">
+  <header><span class="sid">S27</span><h2>设置 /settings（迁移保留）</h2>
+    <span class="meta">流程位置：登录后的个人/客户端配置</span>
+    <span class="src">F-前端§1（迁移保留） · 细节 <span class="tag q">待确认 Q12</span></span></header>
+  <div class="cols">
+    <div class="wf">
+      <div class="browser"><div class="bar"><i></i><i></i><i></i><span>/settings</span></div>
+        <div class="body">
+          <div class="b">外观：配色主题切换（blue-pink / teal / 朱砂）<span class="mini">实现新增，PRD 未记载 <span class="tag q">待确认 Q14</span></span></div>
+          <div class="b">模型接入：Provider 预设（Base URL / 模型 / Key 本地保存）</div>
+          <div class="b">数据：导入 / 导出设置（JSON）· 清除本机数据</div>
+        </div>
+      </div>
+    </div>
+    <div class="anno"><ul>
+      <li><b>可执行</b>：切换主题（全局生效并记忆）；配置问答用模型（供 S17 direct 模式）；导出/清除。</li>
+    </ul></div>
+  </div>
+</div>
+
+<div class="screen">
+  <header><span class="sid">S28</span><h2>Phase 2 占位页（可观测性 / 任务中心 / 工单系统）</h2>
+    <span class="meta">流程位置：菜单可见但未实现（诚实占位，无假数据）</span>
+    <span class="src">F-前端§1（PlaceholderView）</span></header>
+  <div class="cols">
+    <div class="wf">
+      <div class="browser"><div class="bar"><i></i><i></i><i></i><span>/observability ｜ /tasks ｜ /tickets</span></div>
+        <div class="body">
+          <div class="b fill" style="min-height:90px;"><b>「模块名」</b><br>该模块尚未实现，规划在 Phase 2 交付。<br><span class="mini">菜单项带 P2 标记，避免误认为可用功能</span>　<span class="btn">返回概览</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="anno"><ul>
+      <li><b>可执行</b>：仅返回概览。</li>
+    </ul></div>
+  </div>
+</div>
+
+<!-- ═══════════════ S29 全局状态与异常恢复 ═══════════════ -->
+<div class="screen">
+  <header><span class="sid">S29</span><h2>全局状态与异常恢复（横切所有屏）</h2>
+    <span class="meta">流程位置：任何页面的非正常路径</span>
+    <span class="src">F-前端§4 / P-后端§5.3§8.2 / 项目铁律</span></header>
+  <div class="cols">
+    <div class="wf">
+      <table class="wt">
+        <tr><th>场景</th><th>表现</th><th>恢复路径</th></tr>
+        <tr><td>加载中</td><td>骨架屏/按钮 pending（防重复提交）</td><td>自动完成</td></tr>
+        <tr><td>无数据（首次使用）</td><td>空态文案，不造假数据</td><td>按引导去 S06→S07→S08 / S12 / S18</td></tr>
+        <tr><td>401 会话失效</td><td>任意请求 401 → 清 token → 跳 S02</td><td>重新登录（S02）</td></tr>
+        <tr><td>403 无权限</td><td>写按钮隐藏/禁用；直连 403 → toast</td><td>联系 admin 提权（S22）</td></tr>
+        <tr><td>409 冲突</td><td>唯一性冲突 / 非法流转 / 依赖删除受限（各自文案列出原因）</td><td>按文案修正后重试</td></tr>
+        <tr><td>503 未就绪</td><td>「服务尚未就绪」+ 原因（检索器/组件初始化失败）</td><td>排查后端 → S26 健康页确认</td></tr>
+        <tr><td>网络/500</td><td>解析 detail 字段 toast 报错（F-§4）</td><td>重试操作</td></tr>
+        <tr><td>研判超时</td><td>status=timeout + 事件回退 acknowledged + 时间线留痕</td><td>可重新触发研判（S14）</td></tr>
+        <tr><td>研判失败</td><td>failed + error 落库（不抛 500 给前端）</td><td>排查 LLM 凭据/服务 → 重新触发</td></tr>
+        <tr><td>模型未配置</td><td>明确报错提示（问答/研判），绝不伪造答案</td><td>配置凭据（S27 / .env）</td></tr>
+      </table>
+    </div>
+    <div class="anno"><ul>
+      <li><b>铁律（项目级）</b>：无后端/无模型时明确报错，绝不返回伪造答案；模块内无演示性假数据。</li>
+      <li><b>审计兜底</b>：登录成败、状态流转、研判触发/完成、CMDB 写全部留痕（S25 可查），异常处置可追溯。</li>
+    </ul></div>
+  </div>
+</div>
+
+<!-- ═══════════════ 待确认登记表 ═══════════════ -->
+<div class="screen qa">
+  <header><span class="sid">Q</span><h2>待确认事项登记表（PRD 未写清 / PRD 与实现偏差）</h2></header>
+  <div style="padding:12px 14px;">
+    <table>
+      <tr><th style="width:52px;">编号</th><th style="width:200px;">事项</th><th>说明与可选方向</th></tr>
+      <tr><td>Q1</td><td>应用外壳布局</td><td>视觉 PRD（fishcloud-design.md §三）为深色侧栏；实现已改为「顶栏一级导航 + 可折叠二级导航」。线框按实现画。需裁决：回写 PRD 或改回。</td></tr>
+      <tr><td>Q2</td><td>注册流程归属</td><td>/register 与注册开关（PLATFORM_ALLOW_REGISTRATION / AUTO_ACTIVE）为实现新增，PRD 路由表无记载。需确认产品是否保留及默认开/关。</td></tr>
+      <tr><td>Q3</td><td>注册 UX</td><td>现状：填完表单提交后才收到 403「注册暂未开放」。建议加公开端点 GET /auth/registration-status，前端关闭时隐藏入口、开启时正常放行。</td></tr>
+      <tr><td>Q4</td><td>修改密码入口</td><td>后端有 POST /auth/change-password，PRD 未指定 UI 入口位置（当前在账户菜单）。需确认。</td></tr>
+      <tr><td>Q5</td><td>首次登录强制改密</td><td>PRD 只定义首启随机密码打印日志（§2.6），未定义是否强制首次改密。需确认。</td></tr>
+      <tr><td>Q6</td><td>概览 KPI 指标集</td><td>PRD 只说「/health + 事件 KPI + 资产计数」，具体卡片字段与布局未定。</td></tr>
+      <tr><td>Q7</td><td>业务线/环境页面形态</td><td>PRD 路由表只有 /assets；业务线/环境管理是独立页还是资产页内弹层，未明确（线框按独立区块画）。</td></tr>
+      <tr><td>Q8</td><td>资产导出</td><td>视觉 PRD §三.2 画了「导出」按钮，后端 PRD 无导出端点。需确认做不做。</td></tr>
+      <tr><td>Q9</td><td>AssetOut 缺 ownerId</td><td>出参不含负责人 id，前端编辑时无法回填负责人（只能显示名字）。建议后端补字段。</td></tr>
+      <tr><td>Q10</td><td>研判观察方式</td><td>PRD §5.4 计划 SSE 观察端点（/events/{id}/diagnose/stream）+ 事件研判列表（/events/{id}/diagnoses）；实现以轮询 GET /diagnoses/{id} 为主、列表端点未提供（前端经时间线回填）。需确认是否补齐。</td></tr>
+      <tr><td>Q11</td><td>diagnosing 状态矛盾</td><td>PRD §5.1 研判时事件应转 diagnosing，但 §3.3 状态矩阵无 open→diagnosing 且实现中无端点触发该状态（自动研判后仍 acknowledged），「diagnosing→acknowledged」回退实为死代码。需设计裁决。</td></tr>
+      <tr><td>Q12</td><td>迁移视图内部布局</td><td>Chat/Knowledge/Retrieval/Eval/Agent/Settings 六个迁移视图 PRD 仅记「保留迁移」，内部区块布局未定稿（线框画的是当前实现的核心结构）。</td></tr>
+      <tr><td>Q13</td><td>AdminView Tab 数</td><td>PRD 三 Tab（用户/角色/审计）；实现五 Tab（+告警规则/系统健康，因为 AlertsView 删除后规则需要入口）。需裁决回写 PRD。</td></tr>
+      <tr><td>Q14</td><td>主题换肤</td><td>配色切换（blue-pink/teal/朱砂）为用户新增需求并已实现，PRD（fishcloud-design.md）仍是单一朱砂方案。需确认是否回写。</td></tr>
+    </table>
+  </div>
+</div>
+
+<p class="doc" style="margin-top:20px;">—— 全稿完 · FishCloud Phase 1 · 生成于 2026-09-13 · 依据三份 PRD 与当前实现如实绘制，未新增 PRD 之外的功能 ——</p>
+
+</body>
+</html>

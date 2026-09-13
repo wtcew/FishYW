@@ -1,0 +1,52 @@
+; FishCloud 智能运维平台 · 安装版向导脚本（Inno Setup 6）
+; 页面顺序：欢迎 → 许可条款（必选接受）→ 选择安装位置 → 附加任务 → 安装 → 完成
+; 编译：cd desktop/installer && "C:\...\Inno Setup 6\ISCC.exe" FishCloud.iss
+; 产物：FishCloud-Setup-1.0.0.exe（内含免安装版全部内容：便携 Python + 应用 + 启动器）
+;
+; 前置：release/免安装版/ 已含最新构建（App/ + FishCloud.exe + 启动FishCloud.bat）；
+;       重打包前先同步最新 dist：robocopy frontend\dist release\免安装版\App\frontend_dist /MIR
+
+#define MyAppName "FishCloud 智能运维平台"
+#define MyAppVersion "1.0.0"
+#define MyAppExeName "FishCloud.exe"
+#define PortableDir "..\..\release\免安装版"
+
+[Setup]
+AppId={{7E9B2C64-5A31-4E8D-9F02-B6A1C4D8E3F5}
+AppName={#MyAppName}
+AppVersion={#MyAppVersion}
+AppPublisher=FishCloud
+DefaultDirName={autopf}\FishCloud
+DirExistsWarning=no
+DefaultGroupName=FishCloud
+LicenseFile=license-terms.txt
+OutputDir=..\..\release\installer
+OutputBaseFilename=FishCloud-Setup-1.0.0
+Compression=lzma2
+SolidCompression=yes
+WizardStyle=modern
+SetupLogging=yes
+PrivilegesRequired=lowest
+UninstallDisplayIcon={app}\{#MyAppExeName}
+DisableProgramGroupPage=yes
+
+[Tasks]
+Name: "desktopicon"; Description: "创建桌面快捷方式"; GroupDescription: "附加任务："
+Name: "quicklaunchicon"; Description: "创建快速启动栏快捷方式"; GroupDescription: "附加任务："; Flags: unchecked
+
+[Files]
+Source: "{#PortableDir}\App\*"; DestDir: "{app}\App"; Flags: recursesubdirs ignoreversion createallsubdirs
+Source: "{#PortableDir}\FishCloud.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PortableDir}\启动FishCloud.bat"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+
+[Icons]
+Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
+Name: "{group}\卸载 {#MyAppName}"; Filename: "{uninstallexe}"
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: quicklaunchicon
+
+[Run]
+Filename: "{app}\{#MyAppExeName}"; Description: "立即启动 {#MyAppName}"; Flags: nowait postinstall skipifsilent
+
+[UninstallRun]
+; 不自动删除用户数据（数据库/知识库/模型缓存均在项目外 D 盘），仅卸载程序文件

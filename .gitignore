@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# 前端
+frontend/node_modules/
+frontend/dist/
+*.local
+
+# 桌面端打包产物
+release/
+build/
+*.spec.bak
+desktop/dist/
+
+# 运行时数据（模型缓存与知识库均在项目之外，此处兜底）
+.env
+*.log
+rag-data/
+hf-cache/
+
+# 安全扫描历史
+.mimosa/
+
+# IDE
+.idea/
+.vscode/

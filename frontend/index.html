@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FishCloud · 智能运维平台</title>
+  <meta name="description" content="FishCloud —— 面向真实运维现场的智能运维平台：资产中心、事件中心、AI 研判与工单处置一体化工作台。">
+  <meta name="theme-color" content="#2563EB">
+  <!-- 品牌色默认 blue-pink；运行时由 appSettings.applyAppearance 按 data-brand 同步本标签 -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <script>
+    // 首屏前置应用品牌属性：避免 JS 主包加载完成前出现朱砂色闪烁。
+    try {
+      var saved = JSON.parse(localStorage.getItem("fishcloud.app.settings.v1") || "{}");
+      var brand = saved && saved.brand;
+      document.documentElement.setAttribute(
+        "data-brand",
+        brand === "teal" || brand === "zhu" ? brand : "blue-pink",
+      );
+    } catch (e) {
+      document.documentElement.setAttribute("data-brand", "blue-pink");
+    }
+  </script>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

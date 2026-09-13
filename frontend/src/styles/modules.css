@@ -1,0 +1,388 @@
+/* ═══════════════════════════════════════════════════════════════════
+   模块色族 · 应用面扩展（2026-09-13 第二期）
+   -------------------------------------------------------------------
+   第一期只把模块色用在页头条（layout.css 的 [data-module] .page-head::before）
+   与侧栏 system 组，视图层对 --grad-* 的引用为 0 —— 八组页面看起来是同一个色。
+   本期把「模块身份」从一条细带扩到整组结构化表面：
+
+     KPI/统计卡   顶部模块渐变色条 + 数字渐变文字
+     区块标题     左侧模块渐变竖条（.sec-title / .card-head h3）
+     表格表头     模块色低透明度底 + 模块色文字（不整行重渐变）
+     主按钮       模块渐变实底（压暗档，白字恒达标）
+     徽章/标签    模块色 tint 底 + deep 文字 + 小方点渐变
+     面包屑       模块渐变方点
+     空态/加载    图标底色与骨架条取模块色
+     侧栏激活态   八组各自的渐变激活条 + 组标题色点
+     事件状态     状态徽章渐变侧帽；研判进行中用 --grad-aiops 微光
+     管理区       全量走 --grad-admin / --acc-admin*，与业务模块完全隔离
+
+   实现要点（改样式前务必先读）：
+
+   1) 一处绑定、一处派生。
+      `[data-module=...]`（主区，见 App.vue）与 `.sn-group[data-group=...]`
+      （侧栏，见 components/shell/AppSidebar.vue）用同一个选择器列表绑定，
+      测试者/维护者只改一处就能同时改两端，不会漂移。
+   2) 不写死色值，全部经 --grad-* / accent token 派生。
+      本文件里出现的字面色只有 #FFFFFF / #000000 —— 前者是按钮与激活条
+      唯一可读的前景/端点，后者是 color-mix 压暗的锚点，均与品牌无关。
+      data-brand（blue-pink / teal / zhu）× data-theme（明/暗）切换时
+      本文件零改动，模块色随 tokens.css 的块自动跟随。
+   3) 渐变只落在结构化表面。
+      正文长文本、表单输入框、表格数据区（.tbl td）一律不铺渐变；
+      统计条里的语义档（.sv.danger/.warn/.ok）保留红黄绿，不被模块色吃掉。
+   4) 对比度（三品牌 × 明暗 × 八模块 = 48 组逐一实测，见下表最差值）：
+      --mod-deep 作文字（表头 / 徽章 / loading）对所在主题卡片底：最低 4.83:1
+      主按钮白字对 --mod-grad-strong 整条渐变：              最低 4.73:1
+      数字渐变文字对卡片底（22px 大字，阈值 3:1）：           最低 3.07:1
+      模块色作控件色（空态图标 / 焦点环）对卡片底（阈值 3:1）：最低 3.07:1
+      最差两组均落在青绿主题（--accent 亮青与 --acc-ticket 紫），已按需换深档。
+   5) 登录页、品牌印章/鱼字区不在 [data-module] 作用域内，本期一行未动。
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ═══════════ 一、模块绑定（主区 + 侧栏共用一份映射） ═══════════ */
+
+/* 派生量：只依赖 --mod-acc / --mod-deep，故三品牌三明暗通用。
+   放在映射之前声明不影响结果 —— 自定义属性在使用时才求值。 */
+[data-module],
+.sn-group[data-group]{
+  /* 渐变文字：深→主，两端都在「文字可用」区间内 */
+  --mod-grad-text:linear-gradient(120deg,var(--mod-deep) 0%,var(--mod-acc) 100%);
+  /* 侧栏深底上的亮色档：模块色 38% + 白，末端收到纯白。
+     深色面板（朱砂）靠白端保证可见，亮面板（蓝粉/青绿）靠色相区分模块。 */
+  --mod-side:linear-gradient(180deg,color-mix(in srgb,var(--mod-acc) 38%,#FFFFFF) 0%,#FFFFFF 100%);
+  /* 主按钮底色：模块色压到 --mod-mix 档，白字对整条渐变均 ≥4.5:1 */
+  --mod-grad-strong:linear-gradient(135deg,
+    color-mix(in srgb,var(--mod-acc) var(--mod-mix),#000000) 0%,
+    color-mix(in srgb,var(--mod-acc) var(--mod-mix2),#000000) 100%);
+}
+
+/* 八组映射。system 组在末尾：--mod-side 需覆盖上一条通用声明（同特异性、后者胜）。 */
+[data-module="overview"],
+.sn-group[data-group="overview"]{
+  --mod-grad:var(--grad-overview);
+  --mod-acc:var(--brand-1);
+  --mod-deep:var(--brand-text);
+  --mod-tint:rgba(var(--brand-rgb),.06);
+  --mod-soft:rgba(var(--brand-rgb),.26);
+}
+[data-module="assets"],
+.sn-group[data-group="assets"]{
+  --mod-grad:var(--grad-asset);
+  --mod-acc:var(--acc-asset);
+  --mod-deep:var(--acc-asset-deep);
+  --mod-tint:var(--acc-asset-tint);
+  --mod-soft:var(--acc-asset-soft);
+}
+[data-module="events"],
+.sn-group[data-group="events"]{
+  --mod-grad:var(--grad-event);
+  --mod-acc:var(--acc-event);
+  --mod-deep:var(--acc-event-deep);
+  --mod-tint:var(--acc-event-tint);
+  --mod-soft:var(--acc-event-soft);
+}
+[data-module="aiops"],
+.sn-group[data-group="aiops"]{
+  --mod-grad:var(--grad-aiops);
+  /* 控件/文字用深档（--accent-ink），装饰色条与侧栏仍用亮档 --accent：
+     青绿品牌的 --accent(#06B6D4) 对白底只有 2.4:1，不能承载图标与焦点环。 */
+  --mod-acc:var(--accent-ink);
+  --mod-deep:var(--accent-deep);
+  --mod-tint:rgba(var(--accent-rgb),.08);
+  --mod-soft:rgba(var(--accent-rgb),.26);
+}
+/* 可观测性：色族借资产（黛青/靛蓝），但渐变收在点缀色上，与资产页的收口不同 */
+[data-module="observability"],
+.sn-group[data-group="observability"]{
+  --mod-grad:var(--grad-observability);
+  --mod-acc:var(--acc-asset);
+  --mod-deep:var(--acc-asset-deep);
+  --mod-tint:var(--acc-asset-tint);
+  --mod-soft:var(--acc-asset-soft);
+}
+/* 任务中心：渐变起于事件琥珀、收于工单松绿，实色取松绿以区别于事件页 */
+[data-module="tasks"],
+.sn-group[data-group="tasks"]{
+  --mod-grad:var(--grad-tasks);
+  --mod-acc:var(--acc-ticket);
+  --mod-deep:var(--acc-ticket-deep);
+  --mod-tint:var(--acc-ticket-tint);
+  --mod-soft:var(--acc-ticket-soft);
+}
+[data-module="tickets"],
+.sn-group[data-group="tickets"]{
+  --mod-grad:var(--grad-tickets);
+  --mod-acc:var(--acc-ticket);
+  --mod-deep:var(--acc-ticket-deep);
+  --mod-tint:var(--acc-ticket-tint);
+  --mod-soft:var(--acc-ticket-soft);
+}
+/* 系统管理（/admin、/settings、/help）：管理员专属族，业务模块不引用 */
+[data-module="system"],
+.sn-group[data-group="system"]{
+  --mod-grad:var(--grad-admin);
+  --mod-acc:var(--acc-admin);
+  --mod-deep:var(--acc-admin-deep);
+  --mod-tint:var(--acc-admin-tint);
+  --mod-soft:var(--acc-admin-soft);
+  --mod-side:var(--grad-admin-side);
+}
+
+/* ═══════════ 二、正文与页头的模块点缀 ═══════════ */
+
+/* 面包屑：模块渐变方点（唯一改动，文案色不动，避免弱化层次） */
+[data-module] .crumb::before{
+  content:'';display:inline-block;width:6px;height:6px;margin-right:6px;
+  border-radius:1px;background-image:var(--mod-grad);vertical-align:1px;
+}
+
+/* 区块标题：左侧渐变竖条 */
+[data-module] .sec-title::before,
+[data-module] .card-head h3::before{
+  content:'';display:inline-block;width:3px;height:11px;border-radius:1px;
+  margin-right:7px;background-image:var(--mod-grad);vertical-align:-1px;
+}
+/* .sec-title 是 flex 行，竖条作为首个 flex 项参与对齐，无需 vertical-align */
+[data-module] .sec-title::before{vertical-align:baseline;margin-right:0}
+
+/* 键盘焦点环也跟随模块色（全局默认是品牌色，管理区据此变成靛紫） */
+[data-module] :focus-visible{outline-color:var(--mod-acc)}
+
+/* ═══════════ 三、KPI / 统计卡片 ═══════════ */
+
+/* 顶部模块渐变条：统计条已有 overflow:hidden + 圆角，自动被裁成圆角边 */
+[data-module] .stat-strip{position:relative}
+[data-module] .stat-strip::before{
+  content:'';position:absolute;left:0;right:0;top:0;height:2px;
+  background-image:var(--mod-grad);
+}
+/* 大号数字走渐变文字（22px/600 属大字号，对卡片底 ≥3:1 即可，实际均 ≥4.5:1） */
+[data-module] .stat-cell .sv,
+[data-module] .kpi .val{
+  background-image:var(--mod-grad-text);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+/* 语义档（危险/警告/正常）必须保住红黄绿，不被模块渐变吃掉 */
+[data-module] .stat-cell .sv.danger,
+[data-module] .stat-cell .sv.warn,
+[data-module] .stat-cell .sv.ok,
+[data-module] .kpi .val.danger,
+[data-module] .kpi .val.warn,
+[data-module] .kpi .val.ok{
+  background-image:none;-webkit-text-fill-color:currentColor;
+}
+/* 数字里的单位与占位符：background-clip:text 的透明填充会被子元素继承，需显式恢复 */
+[data-module] .stat-cell .sv .unit,
+[data-module] .kpi .val .unit{-webkit-text-fill-color:var(--mo-4)}
+[data-module] .stat-cell .sv .t-dim{-webkit-text-fill-color:var(--mo-5);color:var(--mo-5)}
+
+/* .kpi 卡片（当前视图未使用，保留与统计条一致的模块身份） */
+[data-module] .kpi{position:relative;overflow:hidden;border-top-color:transparent}
+[data-module] .kpi::before{
+  content:'';position:absolute;left:0;right:0;top:0;height:3px;
+  background-image:var(--mod-grad);
+}
+[data-module] .kpi--danger::before{background-image:var(--grad-danger)}
+
+/* ═══════════ 四、表格表头 ═══════════ */
+
+/* 模块色低透明度底 + 模块色文字；数据行（td）保持纯色，信息密度优先 */
+[data-module] .tbl th,
+[data-module] .mx th{
+  background-color:var(--mod-tint);
+  color:var(--mod-deep);
+  border-bottom-color:var(--mod-soft);
+}
+
+/* ═══════════ 五、按钮 ═══════════ */
+
+/* 主按钮：模块渐变实底。hover 只提亮，不新增 token。
+   注意不能沿用 --grad-*：那是为 3px 装饰条设计的，藤黄端白字仅 2.4:1。
+   background-color 兜住 --mod-grad-strong 失效的极端情况（老浏览器不认
+   color-mix 时自定义属性会在计算期失效，background-image 退成 none）：
+   此时按钮仍是一枚实心模块色按钮，不会变成看不见的空壳。 */
+[data-module] .btn-zhu{
+  color:#FFFFFF;
+  background-color:var(--mod-acc);
+  background-image:var(--mod-grad-strong);
+  border-color:transparent;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16);
+}
+[data-module] .btn-zhu:hover{
+  background-color:var(--mod-acc);
+  background-image:var(--mod-grad-strong);
+  border-color:transparent;
+  filter:brightness(1.12);
+}
+[data-module] .btn-zhu:disabled{filter:none}
+/* 深色主题：按钮与页面底都是深色，靠 1px 亮边保证控件边界可见（非文本 3:1） */
+[data-theme="dark"] [data-module] .btn-zhu{border-color:rgba(255,255,255,.18)}
+[data-theme="dark"] [data-module] .btn-zhu:hover{border-color:rgba(255,255,255,.30)}
+
+/* 系统管理组的分段控件（设置页）：.seg button.on 是 scoped 样式，
+   特异性 (0,3,1)，这里用 .content[data-module] 前缀压过去。 */
+.content[data-module="system"] .seg button.on{
+  background-color:transparent;
+  background-image:var(--grad-admin);
+  color:#FFFFFF;
+  border-color:transparent;
+}
+
+/* ═══════════ 六、徽章 / 标签 ═══════════ */
+
+/* 模块色 tint 底 + deep 文字（保证 ≥4.5:1）；渐变只做左侧小方点，
+   避免「渐变底 + 白字」在藤黄这类亮端上掉到 2.4:1。 */
+[data-module] .page-head .bdg,
+[data-module] .bdg--neutral{
+  color:var(--mod-deep);
+  background-color:var(--mod-tint);
+  border-color:var(--mod-soft);
+}
+[data-module] .page-head .bdg::before{
+  content:'';flex-shrink:0;width:5px;height:5px;border-radius:1px;
+  background-image:var(--mod-grad);
+}
+[data-module] .tag{
+  background-color:var(--mod-tint);
+  color:var(--mod-deep);
+  border-color:var(--mod-soft);
+}
+
+/* 事件状态徽章：渐变侧帽（3px 竖条），文字与底色仍走状态五件套 */
+.bdg--success::before,
+.bdg--danger::before{
+  content:'';width:3px;align-self:stretch;border-radius:1px;flex-shrink:0;
+}
+.bdg--success::before{background-image:var(--grad-success)}
+.bdg--danger::before{background-image:var(--grad-danger)}
+/* 状态点（.bdg .d）：成功/危险两族换渐变，其余状态仍取 currentColor ——
+   不能按 .bdg--pulse 一刀切，否则「研判中」（info）的呼吸点会变成绿色。 */
+.bdg--success .d{background-color:transparent;background-image:var(--grad-success)}
+.bdg--danger .d{background-color:transparent;background-image:var(--grad-danger)}
+/* 实底「严重 / 运行中」：换渐变底（浅色档最亮端 4.7:1，暗色档与原实色等价） */
+.bdg--danger-solid{
+  background-color:transparent;
+  background-image:var(--grad-danger);
+  border-color:transparent;
+}
+
+/* ═══════════ 七、空态 / 加载 ═══════════ */
+
+[data-module] .empty .em-ico{
+  width:40px;height:40px;align-items:center;border-radius:var(--r-3);
+  background-color:var(--mod-tint);color:var(--mod-acc);
+}
+/* 加载：文案取模块 deep，骨架条为顶部一段会呼吸的模块渐变 */
+[data-module] .loading-row{position:relative;color:var(--mod-deep)}
+[data-module] .loading-row .spin{border-color:var(--mod-soft);border-top-color:var(--mod-acc)}
+[data-module] .loading-row::after{
+  content:'';position:absolute;left:50%;top:0;height:2px;border-radius:1px;
+  transform:translateX(-50%);background-image:var(--mod-grad);
+  animation:mod-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes mod-shimmer{
+  0%,100%{width:56px;opacity:.4}
+  50%{width:108px;opacity:1}
+}
+
+/* ═══════════ 八、占位页（可观测性 / 任务中心 / 工单系统） ═══════════ */
+
+[data-module] .placeholder .ph-face{
+  border-color:var(--mod-soft);background-color:var(--mod-tint);color:var(--mod-acc);
+}
+[data-module] .placeholder h3::after{
+  content:'';display:block;width:38px;height:2px;margin:10px auto 0;
+  border-radius:1px;background-image:var(--mod-grad);
+}
+[data-module] .placeholder ul li::before{color:var(--mod-acc)}
+
+/* ═══════════ 九、Tab 激活态 ═══════════ */
+
+[data-module] .tab[aria-selected="true"]::after{
+  background-color:transparent;
+  background-image:var(--mod-grad);
+}
+[data-module] .tab[aria-selected="true"] .tab-count{
+  background-color:var(--mod-tint);color:var(--mod-deep);
+}
+
+/* ═══════════ 十、管理区（system 组）专属强化 ═══════════ */
+
+[data-module="system"] .card{
+  border-color:var(--acc-admin-soft);
+}
+[data-module="system"] .card::after{
+  content:'';position:absolute;left:0;right:0;top:0;height:2px;
+  border-radius:var(--r-3) var(--r-3) 0 0;background-image:var(--grad-admin);
+}
+/* 角色 Tab：选中角色与能力勾选格换管理族实色/渐变 */
+[data-module="system"] .mx-role.on{
+  border-color:var(--acc-admin-soft);background-color:var(--acc-admin-tint);
+}
+[data-module="system"] .mx-role:hover{border-color:var(--acc-admin)}
+[data-module="system"] .mx-cb.on{
+  background-color:transparent;background-image:var(--grad-admin);border-color:transparent;
+}
+/* 告警规则行的「已触发/停用」：原型期写死的浅粉底在暗色主题下会变成亮粉块，
+   这里换成状态 token（浅底深底各一档），顺带与管理族的描边统一。 */
+.rule-row.fired{
+  border-color:var(--st-danger-soft);
+  background-color:var(--st-danger-tint);
+  background-image:none;
+}
+[data-module="system"] .rule-row{border-color:var(--acc-admin-soft)}
+[data-module="system"] .rule-row:hover{border-color:var(--acc-admin)}
+
+/* ═══════════ 十一、侧栏导航激活态（八组各自成色） ═══════════ */
+
+/* 分组标题前的色点：八组一眼可辨（原实现只给 system 组一个点）。
+   background-color 兜底：--mod-side 失效时退回白色标记点，与旧版观感一致。 */
+.sn-group[data-group] .sn-group-title::before{
+  content:'';flex-shrink:0;width:6px;height:6px;border-radius:2px;
+  background-color:#FFFFFF;
+  background-image:var(--mod-side);
+}
+/* 激活条：模块渐变（亮端收白，三品牌面板上都看得见）。
+   激活底仍是 --side-active-bg（白系，已通过对比度验证），不动；
+   激活项的图标也保持原样的白色 —— 换成模块色反而把 5.2:1 降到 2.7:1。 */
+.sn-group[data-group] .sn-item[aria-current="page"]::before{
+  background-color:#FFFFFF;
+  background-image:var(--mod-side);
+  box-shadow:none;
+}
+
+/* ═══════════ 十二、事件时间线 / AI 研判 ═══════════ */
+
+.tl-item.err::before{
+  border-color:transparent;background-color:transparent;background-image:var(--grad-danger);
+}
+.tl-item.ai::before{
+  border-color:transparent;background-color:transparent;background-image:var(--grad-aiops);
+}
+/* 研判进行中：左侧 AIOps 渐变竖条 + 面板内的呼吸微光（3%-10%，不干扰正文阅读） */
+.diag--running{position:relative;overflow:hidden;box-shadow:0 0 16px -6px rgba(var(--accent-rgb),.55)}
+.diag--running::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background-image:var(--grad-aiops);
+}
+.diag--running::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:var(--grad-aiops);
+  animation:mod-diagpulse 2.2s ease-in-out infinite;
+}
+@keyframes mod-diagpulse{
+  0%,100%{opacity:.03}
+  50%{opacity:.10}
+}
+
+/* ═══════════ 十三、响应式与降级 ═══════════ */
+
+/* 窄屏：模块渐变竖条/方点保留（体量小），统计条数字渐变在 640px 下已换行，无需再调 */
+@media (max-width:860px){
+  [data-module] .card-head h3::before,
+  [data-module] .sec-title::before{height:10px}
+  [data-module] .loading-row::after{width:48px}
+}
+/* 系统级「减弱动效」已由 tokens.css 的 [data-reduce-motion="on"] 与
+   prefers-reduced-motion 把 animation-duration 压到 0.01ms，本文件无需重复。 */

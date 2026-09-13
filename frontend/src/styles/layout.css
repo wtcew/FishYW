@@ -1,0 +1,273 @@
+/* ═══════════════════════════════════════════════════════════════════
+   应用骨架：深色侧栏（brand 面板）+ 内容区
+   -------------------------------------------------------------------
+   对齐视觉 PRD docs/fishcloud-design.md §三 与 wireframe S01 Q1 裁决：
+   左侧深色品牌面板承载「鱼印章 + FishCloud + 菜单分组 + 身份 / 配色」，
+   右侧纯白主区独占剩余宽度（旧的「顶栏一级 + 折叠二级」方案已下线）。
+
+   配色不写死：侧栏一律取 tokens.css 的 --side-*（blue-pink / teal / zhu
+   三套品牌块各自定义），因此换肤时本文件零改动。
+   对比度：分组标题与菜单文案用 --side-fg / --side-fg-strong（三品牌下
+   均 ≥4.5:1）；--side-fg-dim 只用于品牌副标题与身份小字等装饰性文本。
+
+   侧栏两种形态（同一套规则，无 JS 宽度判断）：
+   - 展开：--sidenav-w（224px），分组标题 + 图标 + 文案 + P2 标记；
+   - 收起：--sidenav-w-min（60px）图标栏 —— 用户点收起，或 ≤860px 窄屏强制。
+     收起时文案不 display:none，只做视觉裁剪，链接的可访问名保持完整。
+   本文件是骨架的唯一权威：prototype.css 里不再有侧栏/页头规则。
+   ═══════════════════════════════════════════════════════════════════ */
+#app{display:flex;flex-direction:row;height:100vh;overflow:hidden}
+
+/* ── 侧栏（深色 brand 面板） ─────────────────────────────────────── */
+.sidenav{
+  width:var(--sidenav-w);flex-shrink:0;position:relative;
+  display:flex;flex-direction:column;overflow:hidden;
+  color:var(--side-fg);
+  background-color:var(--brand-4);
+  background-image:var(--side-bg),var(--side-scrim);
+  border-right:1px solid var(--side-border);
+  transition:width .18s ease;
+}
+/* 深底滚动条：默认浅灰滚条在侧栏上太跳 */
+.sidenav ::-webkit-scrollbar-thumb{background:var(--side-ctl-bd)}
+.sidenav ::-webkit-scrollbar-thumb:hover{background:var(--side-fg-strong)}
+
+/* 品牌面板：鱼印章 + 名称（fishcloud-design.md §一.1a）
+   —— 侧栏与登录页共用，故本段不带留白/分隔线，由各自容器补。 */
+.brand{display:flex;align-items:center;gap:9px;flex-shrink:0}
+.sidenav .brand{padding:13px var(--sp-3);border-bottom:1px solid var(--side-line)}
+.brand-yin{
+  width:32px;height:32px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  line-height:1;font-family:var(--f-song);font-size:17px;font-weight:700;
+  color:var(--side-seal-fg);
+  background-image:var(--side-seal-bg);
+  border:1px solid var(--side-seal-bd);border-radius:var(--r-1);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 -1px 2px rgba(0,0,0,.3),0 1px 3px rgba(0,0,0,.32);
+  text-shadow:0 1px 1px rgba(0,0,0,.35);
+  user-select:none;
+}
+.brand-text{min-width:0;overflow:hidden}
+.brand-text h1{
+  font-family:var(--f-song);font-size:15px;font-weight:700;line-height:1.2;
+  color:var(--side-fg-strong);letter-spacing:.8px;white-space:nowrap;
+}
+.brand-text p{
+  font-size:10px;color:var(--side-fg-dim);margin-top:3px;
+  letter-spacing:.6px;white-space:nowrap;
+}
+
+/* 菜单分组（数据唯一来源：navigation/nav.ts，本文件不管条目内容） */
+.sn-body{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:10px var(--sp-2) var(--sp-3)}
+.sn-group{margin-bottom:12px}
+.sn-group:last-child{margin-bottom:0}
+.sn-group-title{
+  display:flex;align-items:center;gap:6px;
+  padding:4px 9px 5px;font-size:10.5px;font-weight:600;line-height:1.4;
+  color:var(--side-fg);letter-spacing:1.4px;white-space:nowrap;
+}
+.sn-group-title .sn-group-txt{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.sn-list{display:flex;flex-direction:column;gap:1px}
+.sn-item{
+  position:relative;display:flex;align-items:center;gap:9px;
+  padding:7px 9px;border-radius:var(--r-1);
+  font-size:12.5px;color:var(--side-fg);text-decoration:none;white-space:nowrap;
+  transition:background-color .13s,color .13s;
+}
+.sn-item:hover{color:var(--side-fg-strong);background-color:var(--side-hover-bg)}
+.sn-item[aria-current="page"]{
+  color:var(--side-fg-strong);font-weight:600;background-image:var(--side-active-bg);
+}
+.sn-item[aria-current="page"]::before{
+  content:'';position:absolute;left:0;top:6px;bottom:6px;width:2px;
+  border-radius:0 2px 2px 0;
+  background-color:var(--side-active-bar);box-shadow:var(--side-active-glow);
+}
+.sn-item .sn-ico{flex-shrink:0;opacity:.74}
+.sn-item:hover .sn-ico,
+.sn-item[aria-current="page"] .sn-ico{opacity:1}
+.sn-item .sn-txt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.sn-item .sn-tag{
+  flex-shrink:0;font-family:var(--f-mono);font-size:9px;line-height:1.7;
+  padding:0 4px;border:1px solid var(--side-ctl-bd);border-radius:var(--r-1);
+  color:var(--side-fg);letter-spacing:.4px;
+}
+/* 系统管理组：管理专属渐变标记点 + 激活条（与业务模块一眼区分） */
+.sn-group[data-group="system"] .sn-group-title::before{
+  content:'';flex-shrink:0;width:6px;height:6px;border-radius:2px;
+  background-image:var(--grad-admin-side);
+}
+.sn-group[data-group="system"] .sn-item[aria-current="page"]::before{
+  background-color:transparent;background-image:var(--grad-admin-side);box-shadow:none;
+}
+
+/* 侧栏底部：身份 + 设置/退出 + 配色切换 + 收起开关 */
+.sn-foot{
+  flex-shrink:0;display:flex;flex-direction:column;gap:8px;
+  padding:10px var(--sp-3) 12px;border-top:1px solid var(--side-line);
+}
+.sn-user{display:flex;align-items:center;gap:6px;min-width:0}
+.sn-user .un{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.35}
+.sn-user .un-name{display:flex;align-items:center;gap:5px;min-width:0}
+.sn-user .un b{
+  font-size:12px;font-weight:600;color:var(--side-fg-strong);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.sn-user .un span{font-size:10px;color:var(--side-fg-dim);white-space:nowrap}
+/* 管理身份徽章：仅 admin 且处于系统管理分组时出现（渐变底 + 白字，AA 达标） */
+.sn-badge{
+  flex-shrink:0;padding:0 5px;border-radius:8px;
+  font-size:9.5px;font-weight:600;line-height:1.7;letter-spacing:.5px;
+  color:#FFFFFF;background-image:var(--grad-admin);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.2);
+}
+/* 身份行里 .un span 会把字色压成 --side-fg-dim（.38 白，渐变上不够 AA），
+   这里用更高优先级锁死白字：渐变两端最亮处对比度仍 ≥7:1。 */
+.sn-user .un .sn-badge{color:#FFFFFF}
+.sn-ibtn,.sn-toggle{
+  display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
+  width:24px;height:24px;padding:0;
+  border:1px solid var(--side-ctl-bd);border-radius:var(--r-1);
+  background:none;color:var(--side-fg);text-decoration:none;
+  transition:color .15s,border-color .15s,background-color .15s;
+}
+.sn-toggle{border-color:transparent}
+.sn-ibtn:hover,.sn-toggle:hover{
+  color:var(--side-fg-strong);border-color:var(--side-fg-strong);
+  background-color:var(--side-hover-bg);
+}
+.sn-note{font-size:10px;color:var(--side-fg-dim);line-height:1.6}
+.sn-foot-bar{display:flex;align-items:center;justify-content:space-between;gap:8px}
+
+/* ── 收起形态：60px 图标栏 ────────────────────────────────────────
+   与下方 @media (max-width:860px) 的那一段等价（窄屏强制图标栏）。
+   两处都写全：属性态由用户点击触发，媒体查询态由视口触发，
+   合成一个选择器反而会让「谁在生效」变得难读。 */
+.sidenav[data-collapsed="true"]{width:var(--sidenav-w-min)}
+.sidenav[data-collapsed="true"] .brand{padding:13px 0;justify-content:center}
+.sidenav[data-collapsed="true"] .sn-body{padding:10px 0 var(--sp-3)}
+.sidenav[data-collapsed="true"] .sn-group{margin-bottom:8px}
+.sidenav[data-collapsed="true"] .sn-item{justify-content:center;padding:8px 0}
+.sidenav[data-collapsed="true"] .sn-item[aria-current="page"]::before{top:4px;bottom:4px}
+.sidenav[data-collapsed="true"] .sn-foot{padding:10px 0 12px;align-items:center}
+.sidenav[data-collapsed="true"] .sn-user{flex-direction:column;gap:5px;align-items:center}
+.sidenav[data-collapsed="true"] .sn-foot-bar{flex-direction:column;justify-content:center;gap:6px}
+/* 配色切换器在 60px 栏里放不下（3 个色块 ≈ 70px）：窄态隐藏，设置页仍可切换 */
+.sidenav[data-collapsed="true"] .brand-switch{display:none}
+/* 文案与标记：视觉裁剪而非 display:none —— 链接的可访问名不能只剩一个图标 */
+.sidenav[data-collapsed="true"] .brand-text,
+.sidenav[data-collapsed="true"] .sn-group-title,
+.sidenav[data-collapsed="true"] .sn-item .sn-txt,
+.sidenav[data-collapsed="true"] .sn-item .sn-tag,
+.sidenav[data-collapsed="true"] .sn-note,
+.sidenav[data-collapsed="true"] .sn-user .un{
+  position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+  overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;
+}
+
+/* 内容区：页面自身负责内距，这里只管滚动与最小宽度 */
+.content{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+.content-scroll{flex:1;overflow-y:auto;overflow-x:hidden}
+
+/* ── 页面容器 ───────────────────────────────────────────────────── */
+.page{padding:0 var(--sp-6) var(--sp-8);max-width:1600px}
+.page-head{
+  position:relative;
+  display:flex;justify-content:space-between;align-items:flex-start;gap:var(--sp-4);
+  padding:15px 0 12px;margin-bottom:var(--sp-4);border-bottom:1px solid var(--bd-1);
+}
+.page-head::after{content:none}          /* 去掉旧版装饰性色线 */
+/* 模块页头条：3px 渐变（≤6px 约束内），视图零改动 —— 模块 key 由外壳写在
+   [data-module] 上，取值全部来自 tokens.css 的 --grad-*，随品牌/明暗自动跟随。 */
+.page-head::before{
+  content:'';position:absolute;left:0;right:0;top:0;height:3px;border-radius:1px;
+  background-image:var(--grad-brand);
+}
+[data-module="overview"] .page-head::before{background-image:var(--grad-overview)}
+[data-module="assets"] .page-head::before{background-image:var(--grad-asset)}
+[data-module="events"] .page-head::before{background-image:var(--grad-event)}
+[data-module="aiops"] .page-head::before{background-image:var(--grad-aiops)}
+/* 系统管理组（/admin、/settings、/help）—— 管理专属渐变 */
+[data-module="system"] .page-head::before{background-image:var(--grad-admin)}
+[data-module="observability"] .page-head::before{background-image:var(--grad-observability)}
+[data-module="tasks"] .page-head::before{background-image:var(--grad-tasks)}
+[data-module="tickets"] .page-head::before{background-image:var(--grad-tickets)}
+.page-head .ph-left{min-width:0}
+.crumb{font-size:11px;color:var(--mo-4);margin-bottom:5px;letter-spacing:.2px}
+.page-head h2{
+  font-family:var(--f-song);font-size:17px;font-weight:700;color:var(--mo-1);
+  letter-spacing:.5px;line-height:1.3;
+}
+.page-head p{font-size:11.5px;color:var(--mo-3);margin-top:4px;line-height:1.6;max-width:900px}
+.page-head .ph-actions{display:flex;gap:var(--sp-2);flex-shrink:0;padding-top:2px}
+
+/* ── 按钮 ───────────────────────────────────────────────────────── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:6px 12px;font-size:12.5px;font-family:var(--f-hei);letter-spacing:.3px;
+  border-radius:var(--r-1);border:1px solid var(--bd-2);background:var(--zhi-1);color:var(--mo-2);
+  white-space:nowrap;line-height:1.4;
+  transition:background-color .15s,border-color .15s,color .15s;
+}
+.btn:hover{background-color:var(--zhi-3);border-color:var(--bd-3)}
+.btn:active{transform:translateY(1px)}
+.btn:disabled{opacity:.42;cursor:not-allowed;transform:none}
+.btn-zhu{color:#FFFFFF;background-color:var(--brand-1);background-image:var(--brand-grad);border-color:var(--brand-3)}
+.btn-zhu:hover{background-color:var(--brand-2);background-image:var(--brand-grad);border-color:var(--brand-3)}
+.btn-mo{color:var(--mo-2);background-color:var(--zhi-1)}
+.btn-mo:hover{color:var(--mo-1);border-color:var(--bd-3);background-color:var(--zhi-3)}
+.btn-sm{padding:4px 9px;font-size:11.5px;letter-spacing:.2px}
+.btn .zi{font-size:11px;font-weight:600;line-height:1}
+.btn-danger{color:#FBF3F1;background-color:var(--danger-3);border-color:var(--danger-4)}
+.btn-danger:hover{background-color:var(--danger-1);border-color:var(--danger-3)}
+.btn-ghost-danger{color:var(--st-danger-text);background:none;border-color:transparent}
+.btn-ghost-danger:hover{background-color:var(--st-danger-tint);border-color:var(--st-danger-soft)}
+.btn-ghost{color:var(--mo-3);background:none;border-color:transparent}
+.btn-ghost:hover{color:var(--mo-1);background-color:var(--zhi-3)}
+.btn-lg{height:34px;padding:0 16px;font-size:13px}
+.btn-block{width:100%;justify-content:center}
+
+/* ── 无障碍与交互细节 ───────────────────────────────────────────── */
+/* 键盘导航必须有可见焦点：鼠标点击不显示焦点环，键盘聚焦才显示。 */
+:focus-visible{outline:2px solid var(--brand-2);outline-offset:1px;border-radius:var(--r-1)}
+button,[role="button"],a,label,summary{cursor:pointer}
+button:disabled{cursor:not-allowed}
+
+/* 尊重系统「减弱动效」偏好 */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms !important;animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;scroll-behavior:auto !important;
+  }
+}
+
+/* ── 响应式 ─────────────────────────────────────────────────────── */
+@media (max-width:1280px){
+  .page{padding:0 var(--sp-5) var(--sp-7)}
+}
+/* ≤860px：强制图标栏（与上面的 [data-collapsed] 段等价）。
+   收起开关在这里没有意义（展开也无处安放），直接移除，避免出现点了没反应的控件。 */
+@media (max-width:860px){
+  .sidenav{width:var(--sidenav-w-min)}
+  .sidenav .brand{padding:13px 0;justify-content:center}
+  .sidenav .sn-body{padding:10px 0 var(--sp-3)}
+  .sidenav .sn-group{margin-bottom:8px}
+  .sidenav .sn-item{justify-content:center;padding:8px 0}
+  .sidenav .sn-item[aria-current="page"]::before{top:4px;bottom:4px}
+  .sidenav .sn-foot{padding:10px 0 12px;align-items:center}
+  .sidenav .sn-user{flex-direction:column;gap:5px;align-items:center}
+  .sidenav .sn-foot-bar{flex-direction:column;justify-content:center;gap:6px}
+  .sidenav .brand-switch{display:none}
+  .sidenav .sn-toggle{display:none}
+  .sidenav .brand-text,
+  .sidenav .sn-group-title,
+  .sidenav .sn-item .sn-txt,
+  .sidenav .sn-item .sn-tag,
+  .sidenav .sn-note,
+  .sidenav .sn-user .un{
+    position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+    overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;
+  }
+  .page{padding:0 var(--sp-4) var(--sp-7)}
+  .page-head{flex-direction:column;align-items:stretch;gap:var(--sp-3)}
+  .page-head .ph-actions{padding-top:0}
+}

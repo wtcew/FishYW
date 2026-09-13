@@ -1,0 +1,493 @@
+/* ═══════════════════════════════════════
+   设计 token · 逐值对齐 原型.html 的 :root
+   ═══════════════════════════════════════ */
+:root{
+  --zhi-1:#FFFFFF; --zhi-2:#FAFAFA; --zhi-3:#F5F5F5; --zhi-4:#EEEEEE;
+  --zhi-card:#FFFFFF;
+  /* 墨色阶：前四级用于文字，对白底对比度均 ≥ 4.5:1（WCAG AA）；
+     第五级仅用于占位符与装饰，不承载信息。 */
+  --mo-1:#1A1A1A; --mo-2:#3A3A36; --mo-3:#5A5A54; --mo-4:#6E6E67; --mo-5:#A8A8A0;
+  --shu-1:#2A2A28; --shu-2:#1C1C1A; --shu-3:#3D3D3A;
+  /* ── 品牌语义 token（取值由 html[data-brand] 决定，默认 blue-pink） ──
+     组件一律使用 --brand-* ；历史别名 --zhu-* 指向品牌色，老组件无需改动即可换肤。 */
+  --brand-1:#2563EB; --brand-2:#3B82F6; --brand-3:#1D4ED8; --brand-4:#1E3A8A;
+  --brand-rgb:37,99,235;
+  /* 次要点缀（保持稀缺：AI 标记 / 登录页短线 / 强调徽章） */
+  --accent:#EC4899; --accent-soft:#F9A8D4; --accent-rgb:236,72,153;
+  /* 危险色独立于品牌：换肤后「删除 / 严重 / 失败」必须仍是红 */
+  --danger-1:#B03A2E; --danger-2:#C74B3A; --danger-3:#8B2A1F; --danger-4:#6E1E14;
+  --danger-rgb:176,58,46;
+  --zhu-1:var(--brand-1); --zhu-2:var(--brand-2); --zhu-3:var(--brand-3); --zhu-4:var(--brand-4);
+  /* 品牌渐变：印章 / 主按钮 */
+  --brand-yin:linear-gradient(180deg,#3B82F6 0%,#2563EB 58%,#1D4ED8 100%);
+  --brand-grad:linear-gradient(180deg,#3B82F6 0%,#2563EB 55%,#1D4ED8 100%);
+  /* 品牌面板（侧栏 / 登录页左栏） */
+  --side-bg:linear-gradient(180deg,#3B82F6 0%,#2563EB 55%,#1E3A8A 100%);
+  --side-scrim:radial-gradient(125% 44% at 50% 0%,rgba(8,25,72,.34),transparent 72%);
+  --side-border:#1E3A8A;
+  --side-fg:rgba(255,255,255,.82);
+  --side-fg-strong:#FFFFFF;
+  --side-fg-dim:rgba(255,255,255,.58);
+  --side-group:rgba(255,255,255,.56);
+  --side-hover-bg:rgba(255,255,255,.12);
+  --side-active-bg:linear-gradient(90deg,rgba(255,255,255,.24),rgba(255,255,255,.05));
+  --side-active-bar:#FFFFFF;
+  --side-active-glow:0 0 8px rgba(255,255,255,.55);
+  --side-seal-bg:linear-gradient(180deg,rgba(255,255,255,.32),rgba(255,255,255,.12));
+  --side-seal-fg:#FFFFFF;
+  --side-seal-bd:rgba(255,255,255,.46);
+  /* 侧栏结构线（分组分隔 / 交互控件描边）——深底上一律用白色叠加，别用墨色阶 */
+  --side-line:rgba(255,255,255,.12);
+  --side-ctl-bd:rgba(255,255,255,.26);
+  --dian-1:#2C4A5E; --dian-2:#3E6278; --dian-3:#1E3544;
+  --song-1:#3E5C4A; --song-2:#5A7A64;
+  --teng-1:#B8860B; --teng-2:#D4A017; --teng-3:#8B6508;
+  --bian-1:#E4E4DE; --bian-2:#CCCCC4; --bian-3:#969690;
+  --f-song:"Songti SC","STSong","Source Han Serif SC","Noto Serif SC",serif;
+  --f-kai:"Kaiti SC","STKaiti","KaiTi",serif;
+  --f-hei:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --f-mono:"SF Mono","Cascadia Code","Fira Code",ui-monospace,monospace;
+  --r-1:2px; --r-2:3px; --r-3:4px;
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px; --sp-6:24px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:var(--f-hei);color:var(--mo-2);font-size:13px;
+  -webkit-font-smoothing:antialiased;background-color:var(--zhi-2);
+}
+::selection{background:rgba(var(--brand-rgb),.22);color:var(--mo-1)}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bian-1);border-radius:6px;border:2px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-thumb:hover{background:var(--bian-2);border:2px solid transparent;background-clip:content-box}
+
+/* ═══════════ 暗色主题 ═══════════
+   只覆盖语义变量：组件样式一律走变量，因此无需为暗色重写任何组件规则。
+   朱红在深底上提亮以保证对比度，墨色阶整体反转但保留同样的层级差。 */
+[data-theme="dark"]{
+  --zhi-1:#1F1F1D; --zhi-2:#161614; --zhi-3:#262623; --zhi-4:#2E2E2A;
+  --zhi-card:#1F1F1D;
+  --mo-1:#EFEFE9; --mo-2:#C9C9C1; --mo-3:#9C9C94; --mo-4:#7E7E76; --mo-5:#5A5A54;
+  --shu-1:#232321; --shu-2:#171715; --shu-3:#333330;
+  /* 品牌色在深底上提亮一档（具体取值见文件末尾的 [data-theme="dark"][data-brand] 组合） */
+  --dian-1:#5C8CAB; --dian-2:#74A3C0; --dian-3:#3E6A85;
+  --song-1:#6E9C7B; --song-2:#8ABA96;
+  --teng-1:#D2A22A; --teng-2:#E4B843; --teng-3:#C79A31;
+  --bian-1:#2F2F2B; --bian-2:#3C3C37; --bian-3:#4E4E48;
+}
+
+/* ═══════════ 密度与减弱动效（由全局设置驱动） ═══════════ */
+[data-density="compact"] .page{padding:0 24px 32px}
+[data-density="compact"] .card{padding:var(--sp-4)}
+[data-density="compact"] .page-head{padding:20px 0 14px;margin-bottom:18px}
+[data-density="relaxed"] .page{padding:0 40px 56px}
+[data-density="relaxed"] .card{padding:var(--sp-6)}
+[data-density="relaxed"] .page-head{padding:32px 0 22px;margin-bottom:30px}
+[data-reduce-motion="on"] *,
+[data-reduce-motion="on"] *::before,
+[data-reduce-motion="on"] *::after{
+  animation-duration:.01ms !important;animation-iteration-count:1 !important;
+  transition-duration:.01ms !important;
+}
+
+/* 字号缩放：整体缩放比逐处改字号更稳，也不会破坏已固定的像素布局。 */
+#app{zoom:var(--font-scale,1)}
+
+/* ═══════════════════════════════════════
+   FishCloud 平台层 token 扩展（纯追加，不改既有定义）
+   来源：docs/fishcloud-design.md §二（模块色族 / 状态色 / 严重度 / 间距边框阴影）。
+   约束：新组件一律只用这些变量，禁止硬编码色值 —— 否则暗色主题静默失效。
+   ═══════════════════════════════════════ */
+:root{
+  /* ── 模块色族：每族 tint（底）/ soft（描边）/ base（主）/ hover / deep（文字） ── */
+  --acc-asset-tint:rgba(44,74,94,.07);
+  --acc-asset-soft:rgba(44,74,94,.24);
+  --acc-asset:var(--dian-1);
+  --acc-asset-hover:var(--dian-2);
+  --acc-asset-deep:var(--dian-3);
+
+  --acc-event-tint:rgba(184,134,11,.09);
+  --acc-event-soft:rgba(184,134,11,.30);
+  --acc-event:var(--teng-1);
+  --acc-event-hover:var(--teng-2);
+  --acc-event-deep:var(--teng-3);
+
+  --acc-ticket-tint:rgba(62,92,74,.08);
+  --acc-ticket-soft:rgba(62,92,74,.26);
+  --acc-ticket:var(--song-1);
+  --acc-ticket-hover:var(--song-2);
+  --acc-ticket-deep:#2C4636;
+
+  --acc-sys-tint:rgba(90,90,84,.08);
+  --acc-sys-soft:rgba(90,90,84,.24);
+  --acc-sys:var(--mo-3);
+  --acc-sys-hover:var(--mo-4);
+  --acc-sys-deep:var(--mo-2);
+
+  /* ── 状态色五件套（success/warning/danger/info/neutral） ── */
+  --st-success-tint:rgba(62,92,74,.09);
+  --st-success-soft:rgba(62,92,74,.26);
+  --st-success:var(--song-1);
+  --st-success-hover:var(--song-2);
+  --st-success-text:#33513F;
+
+  --st-warning-tint:rgba(184,134,11,.10);
+  --st-warning-soft:rgba(184,134,11,.30);
+  --st-warning:var(--teng-1);
+  --st-warning-hover:var(--teng-2);
+  --st-warning-text:var(--teng-3);
+
+  --st-danger-tint:rgba(var(--danger-rgb),.09);
+  --st-danger-soft:rgba(var(--danger-rgb),.28);
+  --st-danger:var(--danger-1);
+  --st-danger-hover:var(--danger-2);
+  --st-danger-text:var(--danger-3);
+
+  --st-info-tint:rgba(44,74,94,.09);
+  --st-info-soft:rgba(44,74,94,.28);
+  --st-info:var(--dian-1);
+  --st-info-hover:var(--dian-2);
+  --st-info-text:var(--dian-3);
+
+  --st-neutral-tint:rgba(120,120,115,.08);
+  --st-neutral-soft:rgba(120,120,115,.24);
+  --st-neutral:var(--mo-4);
+  --st-neutral-hover:var(--mo-3);
+  --st-neutral-text:var(--mo-3);
+
+  /* 事件严重度（P1 危险 / P2 警告 / P3 提示 / P4 中性）：P1 恒为红，不随品牌变 */
+  --sev-p1:var(--danger-1);
+  --sev-p2:var(--st-warning);
+  --sev-p3:var(--st-info);
+  --sev-p4:#8A8A82;
+
+  /* ── 间距补档（sp-1..6 已存在，平台层页面需要更大的呼吸位） ── */
+  --sp-7:28px; --sp-8:32px; --sp-9:40px;
+
+  /* ── 边框梯度 / 阴影梯度（层次=1px 线 + 留白 + 暖灰轻阴影，禁纯黑） ── */
+  --bd-1:var(--bian-1);
+  --bd-2:var(--bian-2);
+  --bd-3:var(--bian-3);
+  --bd-strong:#8A8A82;
+  --sh-1:0 1px 2px rgba(60,58,52,.06);
+  --sh-2:0 1px 3px rgba(60,58,52,.08),0 1px 2px rgba(60,58,52,.04);
+  --sh-3:0 4px 12px -4px rgba(60,58,52,.14);
+  --sh-4:0 10px 28px -10px rgba(40,38,34,.22);
+  --sh-pop:0 14px 40px -12px rgba(30,28,24,.34);
+
+  /* ── 控件与行高（表格行高 / 输入框高 / 大号输入框高） ── */
+  --ctl-h:28px; --ctl-h-lg:36px; --row-h:38px;
+
+  /* ── 应用外壳（深色侧栏 + 内容区，见 docs/fishcloud-design.md §三） ── */
+  --sidenav-w:224px;      /* 侧栏展开宽 */
+  --sidenav-w-min:60px;   /* 侧栏图标栏宽（收起 / ≤860px 窄屏） */
+
+  /* ═══ 渐变体系（--grad-*） ═══════════════════════════════════════════
+     用途分级：小面积才用渐变 —— 页头条（3px）/ 激活态 / 图标与徽章底 /
+     主按钮 / 卡片顶缘。内容区与表格保持纯色底，信息密度优先。
+     派生规则：除 --grad-admin*（管理专属，需显式指定）外，全部由既有
+     色变量拼成，因此 data-brand / data-theme 切换时自动跟随，无需重写。
+     （--brand-grad / --brand-yin 是原型期的竖向微光与印章渐变，保持原样；
+       本区块是跨组件复用的语义渐变，两者并存但职责不同。）
+     ─────────────────────────────────────────────────────────────────── */
+  --grad-brand:linear-gradient(135deg,var(--brand-2) 0%,var(--brand-1) 55%,var(--brand-4) 100%);
+  --grad-overview:linear-gradient(90deg,var(--brand-1) 0%,var(--acc-asset-hover) 100%);
+  --grad-asset:linear-gradient(90deg,var(--acc-asset-hover) 0%,var(--acc-asset-deep) 100%);
+  --grad-event:linear-gradient(90deg,var(--acc-event-hover) 0%,var(--acc-event-deep) 100%);
+  --grad-aiops:linear-gradient(90deg,var(--accent) 0%,var(--brand-1) 100%);
+  --grad-observability:linear-gradient(90deg,var(--acc-asset-hover) 0%,var(--accent) 100%);
+  --grad-tasks:linear-gradient(90deg,var(--acc-event-hover) 0%,var(--acc-ticket-hover) 100%);
+  --grad-tickets:linear-gradient(90deg,var(--acc-ticket-hover) 0%,var(--acc-ticket-deep) 100%);
+  /* 语义渐变（克制：仅图例/进度/提示条等小面积） */
+  --grad-success:linear-gradient(135deg,var(--st-success-hover) 0%,var(--st-success) 100%);
+  --grad-danger:linear-gradient(135deg,var(--st-danger-hover) 0%,var(--st-danger) 100%);
+  /* 管理专属（blue-pink 默认）：深蓝 → 紫；白字对两端均 ≥7:1，AA 达标 */
+  --grad-admin:linear-gradient(135deg,#4338CA 0%,#7E22CE 100%);
+  /* 侧栏深底上的管理强调（非文字，用小字条 / 标记点；浅紫系才看得见） */
+  --grad-admin-side:linear-gradient(135deg,#A5B4FC 0%,#D8B4FE 100%);
+}
+
+/* 暗色：只覆盖语义变量，组件样式无需改动。 */
+[data-theme="dark"]{
+  --acc-asset-tint:rgba(92,140,171,.12);
+  --acc-asset-soft:rgba(92,140,171,.34);
+  --acc-asset-deep:#8FB5DE;
+  --acc-event-tint:rgba(210,162,42,.12);
+  --acc-event-soft:rgba(210,162,42,.34);
+  --acc-event-deep:#E4B843;
+  --acc-ticket-tint:rgba(110,156,123,.12);
+  --acc-ticket-soft:rgba(110,156,123,.34);
+  --acc-ticket-deep:#8ABA96;
+  --acc-sys-tint:rgba(160,160,150,.10);
+  --acc-sys-soft:rgba(160,160,150,.28);
+  --acc-sys-deep:#C9C9C1;
+
+  --st-success-tint:rgba(110,156,123,.12);
+  --st-success-soft:rgba(110,156,123,.34);
+  --st-success:var(--song-1);
+  --st-success-text:#8ABA96;
+  --st-warning-tint:rgba(210,162,42,.12);
+  --st-warning-soft:rgba(210,162,42,.34);
+  --st-warning:var(--teng-1);
+  --st-warning-text:#E4B843;
+  --st-danger-tint:rgba(199,80,62,.14);
+  --st-danger-soft:rgba(199,80,62,.36);
+  --st-danger:var(--danger-2);
+  --st-danger-text:#E08A78;
+  --st-info-tint:rgba(92,140,171,.12);
+  --st-info-soft:rgba(92,140,171,.34);
+  --st-info:var(--dian-1);
+  --st-info-text:#8FB5DE;
+  --st-neutral-tint:rgba(160,160,150,.10);
+  --st-neutral-soft:rgba(160,160,150,.26);
+  --st-neutral:var(--mo-3);
+  --st-neutral-text:var(--mo-2);
+  --sev-p4:#9C9C94;
+
+  --bd-strong:#5A5A54;
+  --sh-1:0 1px 2px rgba(0,0,0,.28);
+  --sh-2:0 1px 3px rgba(0,0,0,.34),0 1px 2px rgba(0,0,0,.24);
+  --sh-3:0 4px 12px -4px rgba(0,0,0,.42);
+  --sh-4:0 10px 28px -10px rgba(0,0,0,.5);
+  --sh-pop:0 14px 40px -12px rgba(0,0,0,.6);
+}
+
+/* ═══════════════════════════════════════
+   品牌主题（html[data-brand]，与明暗主题正交）
+   -------------------------------------------------------------------
+   blue-pink（默认，见 :root） / teal（青绿备选） / zhu（朱砂原版，保留供回退）。
+   选择器说明：品牌块用 html[data-brand="..."]（0,1,1）压过 :root（0,1,0）；
+   暗色与品牌的组合用 html[data-theme="dark"][data-brand="..."]（0,2,1）压过两者。
+   JS 侧由 appSettings.applyAppearance 写入 data-brand，并同步 <meta name="theme-color">。
+   ═══════════════════════════════════════ */
+
+/* ── teal：青绿备选 ── */
+html[data-brand="teal"]{
+  --brand-1:#0D9488; --brand-2:#14B8A6; --brand-3:#0F766E; --brand-4:#134E4A;
+  --brand-rgb:13,148,136;
+  --accent:#06B6D4; --accent-soft:#67E8F9; --accent-rgb:6,182,212;
+
+  --brand-yin:linear-gradient(180deg,#2DD4BF 0%,#14B8A6 58%,#0F766E 100%);
+  --brand-grad:linear-gradient(180deg,#14B8A6 0%,#0D9488 55%,#0F766E 100%);
+
+  /* 侧栏：官方给的浅→深青绿；顶部加一层暗压保证白字对比度（否则顶端 #2DD4BF 上白字仅 1.9:1） */
+  --side-bg:linear-gradient(180deg,#2DD4BF 0%,#14B8A6 34%,#0F766E 100%);
+  --side-scrim:radial-gradient(125% 46% at 50% 0%,rgba(4,47,46,.52),rgba(4,47,46,.14) 62%,transparent 80%);
+  --side-border:#0B4F49;
+  --side-fg:rgba(255,255,255,.86);
+  --side-fg-strong:#FFFFFF;
+  --side-fg-dim:rgba(255,255,255,.62);
+  --side-group:rgba(255,255,255,.62);
+  --side-hover-bg:rgba(255,255,255,.12);
+  --side-active-bg:linear-gradient(90deg,rgba(255,255,255,.24),rgba(255,255,255,.05));
+  --side-active-bar:#FFFFFF;
+  --side-active-glow:0 0 8px rgba(255,255,255,.55);
+  --side-seal-bg:linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,.14));
+  --side-seal-fg:#FFFFFF;
+  --side-seal-bd:rgba(255,255,255,.46);
+  /* 青绿面板整体偏亮，结构线与控件描边比蓝粉再提一档才看得清 */
+  --side-line:rgba(255,255,255,.18);
+  --side-ctl-bd:rgba(255,255,255,.34);
+
+  /* 管理专属渐变（青绿主题：深青 → 紫，白字两端 5.4:1 / 7.0:1 达标） */
+  --grad-admin:linear-gradient(135deg,#0E7490 0%,#7E22CE 100%);
+
+  /* 模块色族：青绿品牌下「工单=松绿」会与主色撞，改为紫（#7E22CE）；
+     资产由黛青改靛蓝（#4338CA），避免与 accent 青（#06B6D4）同类难分。 */
+  --acc-asset-tint:rgba(67,56,202,.08);
+  --acc-asset-soft:rgba(67,56,202,.26);
+  --acc-asset:#4338CA;
+  --acc-asset-hover:#4F46E5;
+  --acc-asset-deep:#312E81;
+
+  --acc-event-tint:rgba(180,83,9,.09);
+  --acc-event-soft:rgba(180,83,9,.28);
+  --acc-event:#B45309;
+  --acc-event-hover:#D97706;
+  --acc-event-deep:#92400E;
+
+  --acc-ticket-tint:rgba(126,34,206,.09);
+  --acc-ticket-soft:rgba(126,34,206,.26);
+  --acc-ticket:#7E22CE;
+  --acc-ticket-hover:#9333EA;
+  --acc-ticket-deep:#581C87;
+
+  --acc-sys-tint:rgba(71,85,105,.09);
+  --acc-sys-soft:rgba(71,85,105,.26);
+  --acc-sys:#475569;
+  --acc-sys-hover:#64748B;
+  --acc-sys-deep:#334155;
+
+  /* 成功态：松绿在青绿品牌下易混，改用正绿 #15803D 拉开色相 */
+  --st-success-tint:rgba(21,128,61,.10);
+  --st-success-soft:rgba(21,128,61,.30);
+  --st-success:#15803D;
+  --st-success-hover:#16A34A;
+  --st-success-text:#166534;
+}
+
+/* ── zhu：朱砂原版（回退用，含原墨色侧栏） ── */
+html[data-brand="zhu"]{
+  --brand-1:#B03A2E; --brand-2:#C74B3A; --brand-3:#8B2A1F; --brand-4:#6E1E14;
+  --brand-rgb:176,58,46;
+  --accent:#B8860B; --accent-soft:#D4A017; --accent-rgb:184,134,11;
+
+  --brand-yin:linear-gradient(180deg,#C74B3A 0%,#B03A2E 58%,#A53226 100%);
+  --brand-grad:linear-gradient(180deg,#BC4033 0%,#A83328 55%,#91271D 100%);
+
+  --side-bg:linear-gradient(180deg,#30302E 0%,#222220 55%,#1A1A18 100%);
+  --side-scrim:none;
+  --side-border:#0F0F0E;
+  --side-fg:rgba(255,255,255,.62);
+  --side-fg-strong:#F5F5F0;
+  --side-fg-dim:rgba(255,255,255,.38);
+  --side-group:rgba(255,255,255,.44);
+  --side-hover-bg:rgba(255,255,255,.06);
+  --side-active-bg:linear-gradient(90deg,rgba(176,58,46,.22),rgba(176,58,46,.06));
+  --side-active-bar:var(--brand-2);
+  --side-active-glow:0 0 8px rgba(199,75,58,.7);
+  --side-seal-bg:linear-gradient(180deg,#C74B3A 0%,#B03A2E 58%,#A53226 100%);
+  --side-seal-fg:#F7F4EE;
+  --side-seal-bd:#8B2A1F;
+  /* 墨色面板本身很深，结构线要更轻才不会显脏 */
+  --side-line:rgba(255,255,255,.08);
+  --side-ctl-bd:rgba(255,255,255,.22);
+
+  /* 管理专属渐变（朱砂主题：朱深 → 紫，白字两端 6.8:1 / 7.1:1 达标） */
+  --grad-admin:linear-gradient(135deg,#A53226 0%,#6D28D9 100%);
+}
+
+/* ── 暗色 × 品牌：深底上品牌色整体提亮一档 ── */
+html[data-theme="dark"],
+html[data-theme="dark"][data-brand="blue-pink"]{
+  --brand-1:#3B82F6; --brand-2:#60A5FA; --brand-3:#2563EB; --brand-4:#1E40AF;
+  --brand-rgb:59,130,246;
+  --accent:#F472B6; --accent-soft:#F9A8D4; --accent-rgb:244,114,182;
+  --danger-1:#C7503E; --danger-2:#DA6250; --danger-3:#A8392B; --danger-4:#8A2A1F;
+  --danger-rgb:199,80,62;
+  /* 管理渐变在深底上提亮一档（白字 6.2:1 / 5.4:1 达标） */
+  --grad-admin:linear-gradient(135deg,#4F46E5 0%,#9333EA 100%);
+}
+html[data-theme="dark"][data-brand="teal"]{
+  --brand-1:#14B8A6; --brand-2:#2DD4BF; --brand-3:#0D9488; --brand-4:#134E4A;
+  --brand-rgb:20,184,166;
+  --accent:#22D3EE; --accent-soft:#67E8F9; --accent-rgb:34,211,238;
+  --grad-admin:linear-gradient(135deg,#0E7490 0%,#7C3AED 100%);
+}
+html[data-theme="dark"][data-brand="zhu"]{
+  --brand-1:#C7503E; --brand-2:#DA6250; --brand-3:#A8392B; --brand-4:#8A2A1F;
+  --brand-rgb:199,80,62;
+  --accent:#D2A22A; --accent-soft:#E4B843; --accent-rgb:210,162,42;
+  --grad-admin:linear-gradient(135deg,#A53226 0%,#7C3AED 100%);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   模块渐变 · 第二期 token（2026-09-13）
+   -------------------------------------------------------------------
+   第一期只把模块色用在页头条（3px）与侧栏 system 组，视图层对 --grad-*
+   的引用为 0，观感「全局一个色」。本期把模块身份下沉到结构化表面，为此需要
+   三组新 token —— 全部仍是派生量，三品牌 × 明暗切换时零改动自动跟随：
+
+   1) --brand-text / --accent-deep：品牌色与点缀色的「正文可用档」。
+      浅底取深、深底取浅，供 --mod-deep 使用（渐变文字 / 表头文字 / 徽章文字）。
+      取值口径与既有 --st-*-text 一致：对所在主题的卡片底 ≥4.5:1。
+   2) --acc-admin*：管理员色族。与 --grad-admin 同源（靛→紫），
+      业务模块一律不引用，保证「管理区自成一体」。
+   3) --mod-mix / --mod-mix2：主按钮底色的黑色混合比（明暗各一档）。
+      模块渐变原值按「装饰色条」设计（藤黄 #D4A017 上白字仅 2.4:1），
+      直接铺成按钮底会让按钮文案不可读；压暗到 --mod-mix 后
+      8 个模块 × 3 品牌 × 明暗的白字对比度全部 ≥4.5:1（最差 4.7:1）。
+
+   绑定与消费见 styles/modules.css。
+   ═══════════════════════════════════════════════════════════════════ */
+:root{
+  --brand-text:#1D4ED8;          /* blue-pink 深档：白底 6.7:1 */
+  --accent-deep:#BE185D;         /* 点缀色深档（pink-700）：白底 6.0:1 */
+  --accent-ink:#EC4899;          /* 点缀色控件档：作图标/焦点环/渐变尾端，白底 3.5:1 */
+
+  --acc-admin:#4F46E5;           /* 管理族主色：白底 6.3:1 */
+  --acc-admin-hover:#6366F1;
+  --acc-admin-deep:#3730A3;      /* 管理族文字档：白底 9.9:1 */
+  --acc-admin-tint:rgba(79,70,229,.08);
+  --acc-admin-soft:rgba(79,70,229,.26);
+  --acc-admin-rgb:79,70,229;
+
+  --mod-mix:68%;                 /* 主按钮：模块色 × 黑（浅色主题） */
+  --mod-mix2:48%;
+}
+html[data-brand="teal"]{
+  --brand-text:#0F766E;          /* 白底 5.5:1 */
+  --accent-deep:#0E7490;         /* 白底 5.4:1 */
+  /* 青绿品牌的点缀色是亮青 #06B6D4，作图标/焦点环时对白底只有 2.4:1（不足 3:1）；
+     控制类用法换同族深一档，观感不变、对比度合格。 */
+  --accent-ink:#0891B2;          /* 白底 3.7:1 */
+}
+html[data-brand="zhu"]{
+  --brand-text:#8B2A1F;          /* 白底 9.0:1 */
+  --accent-deep:#8B6508;         /* 白底 5.3:1 */
+  --accent-ink:#B8860B;          /* 白底 3.3:1（朱砂主题的点缀色即藤黄，已达标） */
+}
+html[data-theme="dark"],
+html[data-theme="dark"][data-brand="blue-pink"]{
+  --brand-text:#60A5FA;          /* 深底 6.5:1 */
+  --accent-deep:#F9A8D4;         /* 深底 9.1:1 */
+  --accent-ink:#F472B6;          /* 深底 6.2:1 */
+
+  --acc-admin:#818CF8;           /* 深底 5.5:1 */
+  --acc-admin-hover:#A5B4FC;
+  --acc-admin-deep:#C7D2FE;      /* 深底 9.9:1 */
+  --acc-admin-tint:rgba(129,140,248,.13);
+  --acc-admin-soft:rgba(129,140,248,.34);
+  --acc-admin-rgb:129,140,248;
+
+  --mod-mix:60%;
+  --mod-mix2:40%;
+}
+html[data-theme="dark"][data-brand="teal"]{
+  --brand-text:#2DD4BF;          /* 深底 9.0:1 */
+  --accent-deep:#67E8F9;         /* 深底 11.0:1 */
+  --accent-ink:#22D3EE;          /* 深底 9.1:1 */
+}
+html[data-theme="dark"][data-brand="zhu"]{
+  --brand-text:#E9907F;          /* 深底 6.9:1（#DA6250 只有 4.6:1，不够稳） */
+  --accent-deep:#E4B843;         /* 深底 8.4:1 */
+  --accent-ink:#D2A22A;          /* 深底 7.0:1 */
+}
+
+/* ── 青绿品牌 × 暗色：模块色族的补齐（修复既有缺口）
+   青绿块把 --acc-asset / --acc-event / --acc-ticket / --acc-sys 写成了字面量
+   （靛蓝 / 琥珀 / 紫 / 石板灰），特异性 (0,1,1) 高于暗色块 (0,1,0)，
+   于是「青绿 + 暗色」下这些族的 deep 档仍是浅底用的深色（#312E81 等），
+   在深底上做文字只有 1.5:1 左右 —— 本期把该组合补上，六种组合才都成立。 */
+html[data-theme="dark"][data-brand="teal"]{
+  --acc-asset-tint:rgba(129,140,248,.14);
+  --acc-asset-soft:rgba(129,140,248,.34);
+  --acc-asset:#818CF8;
+  --acc-asset-hover:#A5B4FC;
+  --acc-asset-deep:#C7D2FE;      /* 深底 11.1:1 */
+
+  --acc-event-tint:rgba(217,119,6,.14);
+  --acc-event-soft:rgba(217,119,6,.34);
+  --acc-event:#D97706;
+  --acc-event-hover:#F59E0B;
+  --acc-event-deep:#FBBF24;      /* 深底 9.9:1 */
+
+  --acc-ticket-tint:rgba(147,51,234,.14);
+  --acc-ticket-soft:rgba(147,51,234,.34);
+  --acc-ticket:#9333EA;
+  --acc-ticket-hover:#A855F7;
+  --acc-ticket-deep:#C4B5FD;     /* 深底 8.9:1 */
+
+  --acc-sys-tint:rgba(100,116,139,.14);
+  --acc-sys-soft:rgba(100,116,139,.34);
+  --acc-sys:#64748B;
+  --acc-sys-hover:#94A3B8;
+  --acc-sys-deep:#CBD5E1;        /* 深底 11.6:1 */
+
+  --st-success-tint:rgba(22,163,74,.14);
+  --st-success-soft:rgba(22,163,74,.34);
+  --st-success:#16A34A;
+  --st-success-hover:#22C55E;
+  --st-success-text:#6EE7B7;     /* 深底 10.8:1 */
+}
