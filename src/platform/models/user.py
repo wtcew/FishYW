@@ -1,6 +1,6 @@
 """用户与角色模型。
 
-角色采用简化方案（XingCloud 的权限表在本期收敛为角色码矩阵）：``roles.code``
+角色采用简化方案（权限在本期收敛为角色码矩阵）：``roles.code``
 （admin/operator/viewer）即能力判定依据，``roles`` 表仅存显示名与描述；
 权限矩阵见 ``src/platform/deps.py`` 的 ``ROLE_MATRIX``。
 """

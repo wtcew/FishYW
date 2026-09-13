@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000">
+  <defs>
+    <linearGradient id="seal" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#C74B3A"/>
+      <stop offset="0.58" stop-color="#B03A2E"/>
+      <stop offset="1" stop-color="#A53226"/>
+    </linearGradient>
+    <clipPath id="tile"><rect width="1000" height="1000" rx="160"/></clipPath>
+  </defs>
+  <g clip-path="url(#tile)">
+    <rect width="1000" height="1000" fill="url(#seal)"/>
+    <g fill="#782018" opacity="0.36">
+      <ellipse cx="310" cy="272" rx="90" ry="95"/>
+      <ellipse cx="470" cy="215" rx="110" ry="120"/>
+      <ellipse cx="628" cy="262" rx="90" ry="100"/>
+      <rect x="300" y="250" width="340" height="100" rx="50"/>
+    </g>
+    <path fill="#F7F4EE" d="M 264.3 531.0 Q 532.6 298.9 830.0 531.0
+             Q 532.6 763.1 264.3 531.0 Z"/>
+    <path fill="#F7F4EE" d="M 289.7 531.0 L 170.0 418.6 L 170.0 643.4 Z"/>
+    <circle cx="701.3" cy="502.0" r="38.1" fill="#B03A2E"/>
+  </g>
+  <rect x="6" y="6" width="988" height="988" rx="156" fill="none" stroke="#8B2A1F" stroke-opacity="0.59" stroke-width="12"/>
+</svg>

@@ -1,4 +1,4 @@
-# FishCloud · 智能运维平台
+# <img src="desktop/icon/fishcloud-128.png" width="44" alt="FishCloud 图标" /> FishCloud · 智能运维平台
 
 > 面向真实运维现场的智能运维平台：把 **资产登记、事件中心、AI 研判、RBAC 权限与审计** 组织成可审计、可确认、可执行的工作流。
 > 后端 FastAPI + SQLAlchemy 2.x（MySQL 优先 / SQLite 兜底），前端 Vue 3.5 + TypeScript，AI 链路复用自研 LangGraph Agent（混合检索 + 重排 + 幻觉校验）。
@@ -9,13 +9,14 @@
   <img alt="Vue" src="https://img.shields.io/badge/Vue-3.5-42B883?logo=vuedotjs&logoColor=white">
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5.6-3178C6?logo=typescript&logoColor=white">
   <img alt="MySQL" src="https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql&logoColor=white">
-  <img alt="tests" src="https://img.shields.io/badge/tests-731%20passed-brightgreen">
+  <img alt="tests" src="https://img.shields.io/badge/tests-733%20passed%20%2F%201%20skipped-brightgreen">
 </p>
 
 ---
 
 ## 目录
 
+- [实机演示](#实机演示)
 - [一、项目定位](#一项目定位)
 - [二、功能地图](#二功能地图)
 - [三、系统架构](#三系统架构)
@@ -30,6 +31,73 @@
 - [十二、打包与发布](#十二打包与发布)
 - [十三、安全说明](#十三安全说明)
 - [十四、许可](#十四许可)
+
+---
+
+## 实机演示
+
+> 下列截图全部来自**本机实跑**的免安装版桌面客户端（1440 × 900），数据是真实入库记录，**没有一张是设计稿或演示假数据**。
+> 复现方式见 [十、快速开始](#十快速开始)；账号体系与角色差异见 [七、权限矩阵（RBAC）](#七权限矩阵rbac)。
+
+### 1. 进入系统：登录与自助注册
+
+| 登录（品牌渐变页 + Enter 提交 + 失败聚焦） | 自助注册（开关关闭时入口自动隐藏） |
+| :---: | :---: |
+| <img src="docs/screenshots/01-login.png" width="480" alt="登录页"> | <img src="docs/screenshots/02-register.png" width="480" alt="注册页"> |
+
+### 2. 运行概览：运维态势一屏掌握
+
+| 运行概览（KPI 卡 + 实时系统状态） |
+| :---: |
+| <img src="docs/screenshots/03-overview.png" width="880" alt="运行概览"> |
+
+### 3. 资源中心（CMDB）：业务线 → 环境 → 资产
+
+| 资产列表（筛选 / 分页 / 状态） | 资产登记（环境 + 类型 + 标识三元组唯一） |
+| :---: | :---: |
+| <img src="docs/screenshots/04-assets.png" width="480" alt="资产列表"> | <img src="docs/screenshots/05-asset-form.png" width="480" alt="资产登记"> |
+
+### 4. 事件中心：状态机驱动的处置闭环
+
+| 事件列表（严重度 / 状态 / 来源） | 事件详情（时间线 + 处置动作 + 评论） |
+| :---: | :---: |
+| <img src="docs/screenshots/06-events.png" width="480" alt="事件列表"> | <img src="docs/screenshots/07-event-detail.png" width="480" alt="事件详情"> |
+
+| AI 研判结果（根因 / 建议 / 证据编号 / 置信度 / 降级标记） |
+| :---: |
+| <img src="docs/screenshots/08-diagnosis.png" width="880" alt="AI 研判"> |
+
+### 5. AIOps 工具组：问答、知识库、检索调参
+
+| 智能问答（混合检索 + 重排 + 溯源） | 知识库（上传 / 分块 / 向量化状态） |
+| :---: | :---: |
+| <img src="docs/screenshots/09-chat.png" width="480" alt="智能问答"> | <img src="docs/screenshots/10-knowledge.png" width="480" alt="知识库"> |
+
+| 检索调参（召回 / 重排 / 融合参数实测） |
+| :---: |
+| <img src="docs/screenshots/11-retrieval.png" width="880" alt="检索调参"> |
+
+### 6. 系统管理（仅管理员可见）
+
+| 用户管理 | 告警规则 |
+| :---: | :---: |
+| <img src="docs/screenshots/12-admin-users.png" width="480" alt="用户管理"> | <img src="docs/screenshots/13-admin-rules.png" width="480" alt="告警规则"> |
+
+| 审计日志（登录 / 流转 / 研判 / 写操作全程留痕） | 系统健康（存储 / 检索 / 图谱 / 组件状态） |
+| :---: | :---: |
+| <img src="docs/screenshots/14-admin-audit.png" width="480" alt="审计日志"> | <img src="docs/screenshots/15-admin-health.png" width="480" alt="系统健康"> |
+
+### 7. 使用指南与设置
+
+| 使用指南（`/help` 全流程说明） | 设置（外观 / 模型接入 / 账户安全） |
+| :---: | :---: |
+| <img src="docs/screenshots/16-help.png" width="480" alt="使用指南"> | <img src="docs/screenshots/17-settings.png" width="480" alt="设置"> |
+
+### 8. 三套配色主题 × 明暗正交
+
+| 云水蓝粉（默认） | 松石青 | 朱砂 |
+| :---: | :---: | :---: |
+| <img src="docs/screenshots/18-theme-blue-pink.png" width="290" alt="蓝色主题"> | <img src="docs/screenshots/19-theme-teal.png" width="290" alt="青色主题"> | <img src="docs/screenshots/20-theme-zhu.png" width="290" alt="朱砂主题"> |
 
 ---
 
@@ -463,12 +531,18 @@ FishYW/
 
 ### 方式一：免安装 / 安装版（推荐，零配置）
 
-1. 从 [Releases](../../releases) 下载安装包或免安装包；
-2. 双击启动，桌面窗口自动打开；
-3. 使用管理员账号登录（口令由部署时配置，见 `PLATFORM_ADMIN_PASSWORD`）；
-4. 首次使用建议在 **设置 → 账户安全** 自助改密，并在 **系统管理 → 用户** 维护账号。
+| 版本 | 下载文件 | 体积 | 用法 |
+| --- | --- | ---: | --- |
+| 免安装版 | [`FishCloud-Portable-1.0.0.zip`](../../releases/latest) | ≈1.4 GB | 解压得到 `FishCloud/` 目录，双击其中的 **`FishCloud.exe`** 即用 |
+| 安装版 | [`FishCloud-Setup-1.0.0.exe`](../../releases/latest) | ≈276 MB | 向导安装，自动创建桌面 / 开始菜单快捷方式 |
+
+1. 解压或安装后双击 **FishCloud.exe**（首次启动约 30–60 秒，加载检索模型）；
+2. 桌面窗口自动打开，用 **`admin / 123456`** 登录（首次部署请到 **设置 → 账户安全** 改密）；
+3. 要接自己的模型与数据库：把 `App/.env.example` 复制为 `App/.env`，填 `GLM_API_KEY`（或 `DEEPSEEK_API_KEY`）与 MySQL 连接信息后重启；
+4. 退出时若仍有残留进程，双击 **`停止FishCloud.bat`** 一键清场（原理见 [十二、打包与发布](#十二打包与发布)）。
 
 安装包内置便携 Python 与全部依赖，**无需安装 Python、Node 或数据库**（未配置 MySQL 时自动使用 SQLite）。
+**发行包不含任何密钥**——`.env` 被显式排除在打包之外。
 
 ### 方式二：源码运行（开发）
 
@@ -500,13 +574,38 @@ npm run dev          # 默认 http://127.0.0.1:5173
 python -B -m pytest -p no:cacheprovider -q tests/
 ```
 
-**最近一次实测结果：**
+**最近一次实测结果（2026-09-13，真实 MySQL 联调环境）：**
 
 ```
-731 passed, 1 skipped in 103.58s
+733 passed, 1 skipped in 195.19s
 ```
 
 （1 个 skip 为需真实重排序权重的门控用例，默认跳过以避免大体积下载。）
+
+### 实测数据明细
+
+| 指标 | 数值 |
+| --- | --- |
+| 用例总数 | **734**（平台域 461 + RAG 链路与工程约束 273） |
+| 通过 / 跳过 / 失败 | 733 / 1 / 0 |
+| 代码规模 | Python 78 文件 / 20,234 行 · 前端 54 文件 / 15,022 行 · 测试 33 文件 / 10,491 行 |
+| 前端构建 | Vite 生产构建 4.0s，产物 index 133.6 kB（gzip 52.5 kB） |
+| 端到端联调 | **33 / 33 通过**（健康检查 → 登录 → 建资产 → webhook 接入 → 状态流转 → AI 研判 → 审计核对） |
+| 桌面端冷启动 | 13.6s 就绪（ASGI 直调口径，含 bge-m3 加载；首启建索引会略长） |
+
+接口耗时基线（ASGI 直调，本机 CPU，含数据库往返；每项 30 次采样，先热身 3 次）：
+
+| 接口 | 平均 | P50 | P95 |
+| --- | ---: | ---: | ---: |
+| 健康检查（公开） | 0.9 ms | 0.9 ms | 1.1 ms |
+| 资产列表（分页 20） | 21.6 ms | 21.6 ms | 23.1 ms |
+| 事件列表（分页 20） | 11.0 ms | 11.0 ms | 11.8 ms |
+| 审计日志（管理员） | 7.6 ms | 7.7 ms | 8.1 ms |
+| 系统健康（存储 / 检索 / 图谱） | 8.3 ms | 8.4 ms | 9.2 ms |
+| 事件详情（含时间线） | 6.6 ms | 6.5 ms | 7.7 ms |
+| 研判历史列表 | 5.6 ms | 5.7 ms | 6.2 ms |
+
+> 端到端联调脚本与耗时基线脚本可按需重跑，方法见 `docs/HANDOFF.md` 第十节；研判链路单次耗时取决于模型档位（免费档实测 48–81 秒）。
 
 ### 测试覆盖
 
@@ -544,37 +643,52 @@ graph LR
 
 ### 产物位置约定（重要）
 
-| 类型 | 位置 | 原因 |
+| 类型 | 位置 | 说明 |
 | --- | --- | --- |
 | **源代码 / 文档 / 测试** | 本仓库 | — |
-| **安装版 `FishCloud-Setup-*.exe`（约 276MB）** | **GitHub Releases** | 超出 Git 单文件 100MB 限制，不进版本库 |
-| **免安装版（约 1.4GB）** | **GitHub Releases** | 同上；内含便携 Python 运行时 |
+| **免安装版** `FishCloud-Portable-1.0.0.zip`（约 1.4 GB） | [Releases](../../releases) | 内含便携 Python 运行时；解压后根目录即 `FishCloud/` |
+| **安装版** `FishCloud-Setup-1.0.0.exe`（约 276 MB） | [Releases](../../releases) | 超出 Git 单文件 100 MB 限制，不进版本库 |
 
 > 仓库中的 `release/` 目录已在 `.gitignore` 中排除，**不会**被提交；可执行包请从 Releases 页面获取。
 
-### 自行构建
+### 一键构建（推荐）
 
 ```bash
-# 1) 构建前端产物
-cd frontend && npm run build && cd ..
-
-# 2) 免安装版：准备便携 Python 目录并安装依赖
-#    release/免安装版/App/python                      ← 便携 Python 基座
-#    release/免安装版/App/{src,core,desktop,frontend_dist}
-#    pip install --target release/免安装版/App/python/Lib/site-packages -r requirements.txt
-
-# 3) 免安装版启动器（单文件 exe）
-pyinstaller --onefile --name FishCloud --distpath release/免安装版 desktop/launcher_exe.py
-
-# 4) 安装版（Inno Setup 6；脚本含许可条款页与自定义安装位置页）
-ISCC.exe desktop/installer/FishCloud.iss
+python desktop/icon/make_icon.py --variant merged   # ① 品牌图标（.ico + PNG + SVG）
+python desktop/make_release.py --all                # ② 同步源码/前端 → 重建 exe → 打 zip → 自检
 ```
+
+`desktop/make_release.py` 做四件事：把 `src/` `core/` `desktop/` `frontend/dist` 同步进
+`release/免安装版/App/`（镜像删除多余文件）→ 用 PyInstaller 重建带品牌图标的 `FishCloud.exe`
+→ 生成根目录为 `FishCloud/` 的便携 zip → 校验 **`App/.env` 未被打包**（发红包绝不含密钥）。
+安装版再执行一次 Inno Setup 即可：
+
+```bash
+ISCC.exe desktop/installer/FishCloud.iss           # ③ 安装版（含许可条款页 + 自定义安装位置页）
+```
+
+### 桌面端图标与进程回收
+
+- **图标**：`desktop/icon/fishcloud.ico`（16/24/32/48/64/128/256 多尺寸）同时用于 exe 本体、安装向导、快捷方式；窗口内的任务栏图标由 `desktop/fishcloud_desktop.py` 通过 `WM_SETICON` 在运行时贴上。
+- **进程回收**：启动器 `desktop/launcher_exe.py` 把子进程放进 `KILL_ON_JOB_CLOSE` 作业对象，父进程一退出（正常关闭、关控制台、任务管理器强杀）整棵子进程树即被系统回收；桌面壳在窗口关闭后按「停服务 → 释放连接池 → 清子进程 → `os._exit`」收尾，绕开 torch/HF 非守护线程拖住解释器退出的老问题。
+- **兜底脚本**：`desktop/stop_fishcloud.py`（打包为 `停止FishCloud.bat`）按「镜像路径位于 FishCloud 目录内」精确识别相关进程并先叶子后根地终止，可重复执行、无进程时返回 0。
+
+### 首次搭建便携运行时（仅打包机需要一次）
+
+```bash
+# 便携 Python 基座 + 依赖（体积大，只做一次）
+#   release/免安装版/App/python                      ← 便携 Python 基座
+pip install --target release/免安装版/App/python/Lib/site-packages -r requirements.txt
+```
+
+之后的每次发版只需 `npm run build` + `python desktop/make_release.py --all`。
 
 ---
 
 ## 十三、安全说明
 
 - **仓库不含任何密钥**：所有凭据通过 `.env`（已在 `.gitignore` 中）或系统环境变量注入；`.env.example` 仅含占位符。
+- **发行包同样不含密钥**：便携 zip 在打包时跳过 `.env`，安装版向导脚本对 `App\*` 显式 `Excludes: ".env,.env.local"`，`make_release.py --verify` 还会在出包前二次确认。
 - **默认口令仅用于本地开箱体验**，生产部署请务必修改管理员口令并配置独立 `JWT_SECRET`。
 - **AIOps 接口已鉴权**：读操作需登录（只读角色即可），写操作（问答 / 诊断 / 上传 / 删除 / 评估）需运维角色及以上；健康检查保持公开（供启动器与监控探活）。
 - **审计留痕**：登录成败、事件流转、研判触发与完成、CMDB 与用户管理写操作全部落审计（含操作人与来源 IP）。

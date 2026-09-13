@@ -69,7 +69,7 @@ class Settings(BaseSettings):
     HF_HOME: str = os.environ.get("HF_HOME", r"D:\hf-cache")
 
     # 平台业务库（2026-09-12 决策：MySQL 优先，SQLite 兜底；均在 D 盘或本机 MySQL）
-    PLATFORM_DB: str = os.environ.get("PLATFORM_DB", r"D:\xingzhi-platform\platform.db")
+    PLATFORM_DB: str = os.environ.get("PLATFORM_DB", r"D:\fishcloud-data\platform.db")
     MYSQL_HOST: str = os.environ.get("MYSQL_HOST", "")
     MYSQL_PORT: int = int(os.environ.get("MYSQL_PORT", "3306"))
     MYSQL_USER: str = os.environ.get("MYSQL_USER", "")

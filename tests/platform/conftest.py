@@ -9,7 +9,7 @@
 
 * 平台库一律落在 ``tmp_path`` 下的 SQLite；``PLATFORM_DB`` 被改写、
   MySQL 四要素被清空——**绝不**连接真实 MySQL，**绝不**触碰
-  ``D:\\xingzhi-platform\\platform.db``；
+  ``D:\\fishcloud-data\\platform.db``；
 * 真实模型永不加载：``AppState``/agent 图用假替身，``_init_components`` 被
   替身接管，``run_agent`` 逐用例 mock（2.2GB 权重不进测试进程）；
 * 平台库惰性初始化的模块级全局状态逐用例重置（``reset_for_tests``），

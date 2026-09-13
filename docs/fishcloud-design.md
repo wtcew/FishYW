@@ -15,7 +15,7 @@
   <div class="brand-yin" aria-hidden="true">鱼</div>
   <div class="brand-text">
     <h1>FishCloud</h1>
-    <p>Agentic RAG 智能运维</p>
+    <p>智能运维平台</p>
   </div>
 </div>
 ```

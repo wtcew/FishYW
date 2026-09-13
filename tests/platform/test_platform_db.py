@@ -41,13 +41,26 @@ def test_engine_fallback_flag_is_set(engine: Engine) -> None:
 
 
 def test_engine_file_lives_in_tmp_path(engine: Engine, platform_db_path: Path) -> None:
-    """库文件落在 tmp_path，绝不落到 D:\\xingzhi-platform\\platform.db。"""
+    """库文件落在 tmp_path，绝不落到 D:\\fishcloud-data\\platform.db。"""
     assert Path(str(engine.url.database)) == platform_db_path
 
 
 def test_get_engine_returns_singleton(engine: Engine) -> None:
     """引擎进程内唯一。"""
     assert platform_db.get_engine() is engine
+
+
+def test_dispose_engine_releases_pool_and_resets(engine: Engine) -> None:
+    """释放连接池后回到未初始化状态，下次取用会重建（桌面端退出的清理路径）。"""
+    platform_db.dispose_engine()
+    rebuilt = platform_db.get_engine()
+    assert rebuilt is not engine
+    platform_db.dispose_engine()  # 幂等：重复调用不抛异常
+
+
+def test_dispose_engine_is_noop_before_init(platform_settings: Any) -> None:
+    """从未初始化时调用是安全的空操作（幂等，退出路径不允许抛异常）。"""
+    platform_db.dispose_engine()
 
 
 def test_get_db_yields_usable_session(engine: Engine) -> None:

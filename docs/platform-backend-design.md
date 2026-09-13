@@ -23,7 +23,7 @@
                         └───────┬────────┘      └─────────────────────────┘
                                 │ SQLAlchemy 2.0
                         ┌───────▼────────────────────┐
-                        │ SQLite D:\xingzhi-platform\platform.db (WAL) │
+                        │ SQLite D:\fishcloud-data\platform.db (WAL) │
                         └────────────────────────────┘
 ```
 
@@ -401,7 +401,7 @@ tests/
 
 ```python
 # 平台持久化（用户决策 2026-09-12：DB 文件放项目外 D 盘）
-PLATFORM_DB: str = os.environ.get("PLATFORM_DB", r"D:\xingzhi-platform\platform.db")
+PLATFORM_DB: str = os.environ.get("PLATFORM_DB", r"D:\fishcloud-data\platform.db")
 # JWT：绝不硬编码密钥。三段策略：
 #   1) .env/环境变量提供 JWT_SECRET（长度 >= 32，启动时校验，过短直接拒绝启动）；
 #   2) 未提供时每次进程启动用 secrets.token_urlsafe(48) 生成临时密钥 + logger.warning
@@ -424,7 +424,7 @@ GLM_MODEL_NAME: str = "glm-4.7-flash"
 ```
 
 注意点：
-- `settings.py` 的模块文档声明“零磁盘约束：仅读取配置，不写入任何文件”——**目录创建（`D:\xingzhi-platform` 的 `mkdir(parents=True, exist_ok=True)`）放在 `src/platform/db.py` 的惰性初始化里，不放 settings.py**。
+- `settings.py` 的模块文档声明“零磁盘约束：仅读取配置，不写入任何文件”——**目录创建（`D:\fishcloud-data` 的 `mkdir(parents=True, exist_ok=True)`）放在 `src/platform/db.py` 的惰性初始化里，不放 settings.py**。
 - 复用现有 `get_settings()` 的 `lru_cache` 单例；测试里 monkeypatch 环境变量后必须 `get_settings.cache_clear()`（test_zero_disk.py 已有先例）。
 - `SettingsConfigDict(extra="ignore")` 不变，新增字段对存量部署零影响。
 
@@ -435,7 +435,7 @@ GLM_MODEL_NAME: str = "glm-4.7-flash"
 平台测试独立放在 `tests/platform/`（目录级 conftest，**不新建全局 tests/conftest.py**，避免影响 269 个存量测试的收集与夹具）。全部沿用 `python -B -m pytest -p no:cacheprovider -q tests/platform/...` 约定。
 
 `tests/platform/conftest.py` 核心夹具：
-- `db_session`：`tmp_path / "platform.db"`；monkeypatch `PLATFORM_DB` + `get_settings.cache_clear()`；构造独立 engine，`dependency_overrides[get_db]` 指向测试 session factory——**测试永不触碰 D:\xingzhi-platform 真实路径**；
+- `db_session`：`tmp_path / "platform.db"`；monkeypatch `PLATFORM_DB` + `get_settings.cache_clear()`；构造独立 engine，`dependency_overrides[get_db]` 指向测试 session factory——**测试永不触碰 D:\fishcloud-data 真实路径**；
 - `seeded`：跑 `init_platform_db(seed=True)` 得到 admin/operator/viewer 三个账号（密码固定测试值）；
 - `client(seeded)`：`TestClient(app)`（lifespan 触发无妨：平台引擎已被 override，现有组件由既有 `_init_components` mock 替身接管）；
 - `fake_agent`：monkeypatch `src/platform/services/diagnosis` 的 `run_agent` 入口为 async 假函数（返回固定 answer/sources/confidence），沿用 test_api.py 的 `mock.patch.object(routes, "_init_components", ...)` 同款替身思路。
@@ -473,7 +473,7 @@ GLM_MODEL_NAME: str = "glm-4.7-flash"
 
 | 风险 | 应对 |
 |---|---|
-| 现有 `with TestClient(routes.app)` 触发 lifespan，若平台 DB 初始化放 lifespan，269 个测试会向 D:\xingzhi-platform 写文件 | **引擎惰性初始化**：只在 `get_db` 依赖首次被调用时建引擎/建表/种子；现有测试不请求平台端点，零副作用。平台端点在 DB 不可用时统一 503（沿用 `_require`/ready 模式语义） |
+| 现有 `with TestClient(routes.app)` 触发 lifespan，若平台 DB 初始化放 lifespan，269 个测试会向 D:\fishcloud-data 写文件 | **引擎惰性初始化**：只在 `get_db` 依赖首次被调用时建引擎/建表/种子；现有测试不请求平台端点，零副作用。平台端点在 DB 不可用时统一 503（沿用 `_require`/ready 模式语义） |
 | test_api.py 对 routes.py 做 AST 禁写扫描（`open`/`write`/`pickle` 等黑名单） | include_router 一行不触发；但平台新文件不在扫描范围，第 8 步显式扩展扫描目标，防平台代码绕过零落盘审查（SQLite 落盘属用户已批准的例外，扫描应白名单 `platform.db` 路径） |
 | 现有端点无鉴权（/diagnose、/upload 仍匿名） | Phase 1 显式决策保持不动（前端 rag.ts 未带 token，改动会破坏 13 个视图）；在 /admin/system/health 与文档中标注该边界，Phase 2 再评估全站鉴权与 token 注入 |
 | SQLite 单写者与研判后台任务并发写 | 短事务 + `PRAGMA busy_timeout=5000` + WAL（connect 事件回调设置）；worker 串行（单协程消费队列）天然降低写冲突 |
@@ -497,7 +497,7 @@ GLM_MODEL_NAME: str = "glm-4.7-flash"
 
 - `src/platform/db.py` 构造连接串顺序：
   1. `.env` 提供 `MYSQL_HOST/MYSQL_PORT/MYSQL_USER/MYSQL_PASSWORD/MYSQL_DB`（本机已配：127.0.0.1:3306, root, 库名 `fish`，utf8mb4_unicode_ci）→ 用 `mysql+pymysql://...`；
-  2. 未提供 MySQL 配置或连接失败 → 回退 `sqlite:///D:\xingzhi-platform\platform.db`（WAL + busy_timeout），日志告警但不阻断启动。
+  2. 未提供 MySQL 配置或连接失败 → 回退 `sqlite:///D:\fishcloud-data\platform.db`（WAL + busy_timeout），日志告警但不阻断启动。
 - 依赖追加 `pymysql`（已装）与 `cryptography`（MySQL 8 caching_sha2_password 认证需要）；SQLite 兜底无需额外驱动。
 - 连接池：MySQL 用 `pool_pre_ping=True` + `pool_recycle=3600`（防空闲断连）；其余模型/迁移/审计设计不变。
 - `.env` 已写入连接信息（gitignore 覆盖）；本地 root/弱口令仅限开发环境，生产部署必须换专用账号。

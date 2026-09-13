@@ -3,7 +3,7 @@
 连接串优先级（用户决策 2026-09-12）：
 
 1. `.env` 提供 ``MYSQL_HOST/PORT/USER/PASSWORD/DB`` → MySQL（pymysql 驱动）；
-2. 未提供或连接失败 → 回退 SQLite ``PLATFORM_DB``（默认 D:\\xingzhi-platform\\platform.db，
+2. 未提供或连接失败 → 回退 SQLite ``PLATFORM_DB``（默认 D:\\fishcloud-data\\platform.db，
    WAL + busy_timeout），日志告警但不阻断启动。
 
 引擎惰性初始化（首次 :func:`get_db` 才建引擎/建表/种子）是兼容性关键：
@@ -212,6 +212,26 @@ def reset_for_tests() -> None:
         _engine = None
         _session_factory = None
         _initialized = False
+
+
+def dispose_engine() -> None:
+    """释放连接池并复位初始化标志（桌面端退出时调用，幂等）。
+
+    未初始化过则直接返回；释放失败只记日志不抛异常——退出路径不允许
+    因为清理动作本身而崩溃。
+    """
+    global _engine, _session_factory, _initialized
+    with _init_lock:
+        engine, _engine = _engine, None
+        _session_factory = None
+        _initialized = False
+    if engine is None:
+        return
+    try:
+        engine.dispose()
+        logger.info("平台数据库连接池已释放")
+    except Exception:  # noqa: BLE001 - 退出清理不允许反向阻塞进程终止
+        logger.warning("平台数据库连接池释放失败（忽略）", exc_info=True)
 
 
 def using_fallback() -> bool:

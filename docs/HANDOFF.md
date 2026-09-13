@@ -6,7 +6,7 @@
 
 ## 一、项目定位与品牌
 
-- **FishCloud**：面向真实运维现场的智能运维平台（Xing-Cloud 模块语义自研实现，不照搬其 UI）。铁律：**实际可用、无演示假数据、无后端/无模型时明确报错**；运维方向以**软件项目/软件工程**为核心（用户 2026-09-12 明确，勿偏硬件）。
+- **FishCloud**：面向真实运维现场的智能运维平台（可审计、可确认、可执行的工作流：资产登记 / 事件中心 / AI 研判 / RBAC / 审计）。铁律：**实际可用、无演示假数据、无后端/无模型时明确报错**；运维方向以**软件项目/软件工程**为核心（用户 2026-09-12 明确，勿偏硬件）。
 - 技术栈：FastAPI + SQLAlchemy 2.x（MySQL 优先/SQLite 兜底）+ Vue 3.5 + TS + Pinia + Router4 + Vite；设计体系 tokens/prototype/layout/platform 四层 CSS。
 - 品牌：鱼字印章 + FishCloud + favicon.svg；三套配色主题（blue-pink 默认 / teal / zhu 朱砂）+ 明暗正交。
 
@@ -17,7 +17,7 @@
 | `D:\Agentic-Rag\agentic-rag-ops` | 项目根（git；基线提交 `f8a2ef0`，此后 Q 裁决改动未提交） |
 | `D:\hf-cache` | 模型权重 4.3GB（bge-m3 + bge-reranker-v2-m3） |
 | `D:\rag-data` | 知识库快照；`D:\ai-cache\{torch,matplotlib,xdg,ms-playwright}` 应用级缓存 |
-| `D:\xingzhi-platform\platform.db` | SQLite 兜底库（至今零触碰，测试全部 tmp_path） |
+| `D:\fishcloud-data\platform.db` | SQLite 兜底库（至今零触碰，测试全部 tmp_path） |
 | `D:\build_tmp` | 一切命令的 TMP/TEMP；联调脚本 `fishcloud_e2e.py`（33 项）在此 |
 | `release/免安装版/` | 便携打包产物（App/python 1.33GB + `启动FishCloud.bat` + `.env.example`） |
 | `docs/` | HANDOFF + 前后端设计文档（已回写 Q 裁决）+ 视觉设计 + 线框图 |
@@ -33,8 +33,6 @@
 
 | 网址 | 说明 |
 | --- | --- |
-| https://gitee.com/xinghaik8s/xingcloud | Xing-Cloud 源码（语义参照）；API v5 raw 需 token、contents 可用 |
-| https://www.yuque.com/zerd-xinghai/xingcloud | 教程（需登录） |
 | https://api-docs.deepseek.com/zh-cn | DeepSeek V4.1 Flash：正式 API ID=`deepseek-flash`，旧名 deepseek-chat 已于 2026-07-24 停用 |
 
 ## 五、踩坑清单（重复踩代价高，改码前过一遍）
